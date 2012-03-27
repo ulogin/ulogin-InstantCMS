@@ -1,0 +1,41 @@
+=== uLogin - виджет авторизации через социальные сети ===
+Donate link: http://ulogin.ru/
+Tags: ulogin, login, social, authorization
+Requires at least: 1.7
+Tested up to: 1.9
+Stable tag: 1.7
+License: GPL V3
+
+Форма авторизации uLogin через социальные сети. Улучшенный аналог loginza.
+
+== Description ==
+
+uLogin — это инструмент, который позволяет пользователям получить единый доступ к различным Интернет-сервисам без необходимости повторной регистрации,
+а владельцам сайтов — получить дополнительный приток клиентов из социальных сетей и популярных порталов (Google, Яндекс, Mail.ru, ВКонтакте, Facebook и др.)
+
+== Installation ==
+
+Для более ранних версий:
+1. Папку plugins нужно скопировать в корень сайта.
+2. В файле templates/_default_/template.php в <head> добавить код: <script src="http://ulogin.ru/js/ulogin.js"></script>
+3. В файле templates/_default_/components/com_registration.tpl добавить код:
+<td rowspan="9" valign="top">
+<div class="lf_title">Регистрация через социальный сети</div>
+<p style="margin:15px 0">
+Если у Вас есть регистрация в других социальных сетях или аккаунт OpenID, то Вы можете войти на сайт без регистрации.
+</p>
+{php}cmsCore::callEvent('ULOGIN_BUTTON', array());{/php}
+</td>
+
+после кода:
+<div id="logincheck"></div>
+</td>
+
+4. В файле templates/_default_/modules/mod_auth.tpl добавить код в самом верху: <div style="text-align: right; margin: 0 -7px 5px 0;">{php}cmsCore::callEvent('ULOGIN_BUTTON', array('id'=>'sideuLogin'));{/php}</div>
+
+5. В файле templates/_default_/template.php добавить код:
+	<?php cmsCore::callEvent('ULOGIN_BUTTON_SMALL', array()); ?>
+после:
+	<a href="javascript:window.external.AddFavorite('http://<?php echo $_SERVER['HTTP_HOST']?>/', '<?php cmsPrintSitename(); ?>')" id="ht_fav">В избранное</a>
+
+6. активировать плагин в админке
