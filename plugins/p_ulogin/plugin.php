@@ -13,7 +13,7 @@ class p_ulogin extends cmsPlugin
         $this->info['type'] = 'Auth';
         $this->info['description'] = 'Авторизация с помощью социальных сетей';
         $this->info['author'] = 'cramen';
-        $this->info['version'] = '0.1';
+        $this->info['version'] = '0.2';
 
         $this->config['Providers'] = 'vkontakte,odnoklassniki,mailru,facebook';
         $this->config['Hidden'] = 'twitter,google,yandex,livejournal,openid';
@@ -86,7 +86,7 @@ class p_ulogin extends cmsPlugin
         $hidden = $this->config['Hidden'];
 
         $html = '<div id="'.$id.'" x-ulogin-params="display='.($small?'small':'panel').
-                '&fields=first_name,last_name,nickname,city,photo,bdate,sex,email,network&providers='. $providers .
+                '&fields=first_name,last_name,nickname,city,photo,photo_big,bdate,sex,email,network&providers='. $providers .
                 '&hidden=' . $hidden . '&redirect_uri=' . $token_url . '"></div>';
 
         echo $html;
@@ -395,16 +395,21 @@ class p_ulogin extends cmsPlugin
         $inCore = cmsCore::getInstance();
         $inDB = cmsDatabase::getInstance();
 
-        if (!$profile['photo']) return;
+        $profile_photo = $profile['photo'];
+        if (isset($profile['photo_big']) &&  $profile['photo_big']!='http://ulogin.ru/img/photo_big.png')
+            $profile_photo = $profile['photo_big'];
+
+
+        if (!$profile_photo) return;
 
         $cfg = $inCore->loadComponentConfig('users');
 
-        $tmpName = rand(100000,10000000).'.'.strtolower(substr($profile['photo'],-3));
+        $tmpName = rand(100000,10000000).'.'.strtolower(substr($profile_photo,-3));
 
 
         $inCore->includeGraphics();
 
-        $filecontents = file_get_contents($profile['photo']);
+        $filecontents = file_get_contents($profile_photo);
         $uploaddir = PATH . '/images/users/avatars/';
         file_put_contents($uploaddir.$tmpName,$filecontents);
 
