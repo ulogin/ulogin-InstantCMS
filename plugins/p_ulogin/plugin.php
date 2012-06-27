@@ -346,7 +346,7 @@ class p_ulogin extends cmsPlugin
 
         $string = trim($string);
         $string = mb_strtolower($string, 'cp1251');
-        $string = preg_replace('/[^a-zA-Zà-ÿÀ-ß0-9\-]/i', '', $string);
+        $string = preg_replace('/[^a-zA-Zà-ÿÀ-ß0-9]/i', '', $string);
 
         while (strstr($string, '--')) {
             $string = str_replace('--', '-', $string);

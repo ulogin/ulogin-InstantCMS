@@ -44,3 +44,6 @@ uLogin — это инструмент, который позволяет пол
 	<a href="javascript:window.external.AddFavorite('http://<?php echo $_SERVER['HTTP_HOST']?>/', '<?php cmsPrintSitename(); ?>')" id="ht_fav">В избранное</a>
 
 6. активировать плагин в админке
+
+== Changelog ==
+ - Корректное добавление пользователей с тире в псеводниме.
