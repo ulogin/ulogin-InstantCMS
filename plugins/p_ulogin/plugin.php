@@ -16,7 +16,7 @@ class p_ulogin extends cmsPlugin
         $this->info['version'] = '0.2';
 
         $this->config['Providers'] = 'vkontakte,odnoklassniki,mailru,facebook';
-        $this->config['Hidden'] = 'twitter,google,yandex,livejournal,openid';
+        $this->config['Hidden'] = 'other';
 
         $this->events[] = 'ULOGIN_BUTTON';
         $this->events[] = 'ULOGIN_BUTTON_SMALL';
