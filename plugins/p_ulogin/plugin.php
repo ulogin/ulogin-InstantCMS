@@ -16,7 +16,7 @@ class p_ulogin extends cmsPlugin
         $this->info['version'] = '0.2';
 
         $this->config['Providers'] = 'vkontakte,odnoklassniki,mailru,facebook';
-        $this->config['Hidden'] = 'other';
+        $this->config['Hidden'] = 'twitter,google,yandex,livejournal,openid';
 
         $this->events[] = 'ULOGIN_BUTTON';
         $this->events[] = 'ULOGIN_BUTTON_SMALL';
@@ -75,7 +75,7 @@ class p_ulogin extends cmsPlugin
 
     }
 
-    private function showUloginButton($item)
+    private function showUloginButton($item = array())
     {
         
         $small = (isset($item['small']) && $item['small'])?true:false;
@@ -240,6 +240,9 @@ class p_ulogin extends cmsPlugin
             // не указано вообще ничего
             $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
             $nickname = 'user' . ($max['id'] + 1);
+        }else{
+
+            $nickname = $this->checkNickname($nickname);
         }
 
         $login = $this->makeLogin($nickname);
@@ -324,8 +327,6 @@ class p_ulogin extends cmsPlugin
 
         }
 
-
-
         return false;
 
     }
@@ -373,6 +374,21 @@ class p_ulogin extends cmsPlugin
         return $string;
 
     }
+
+    private function checkNickname($string){
+
+        $inDB = cmsDatabase::getInstance();
+
+        $nickname = mb_strtolower($string, 'cp1251');
+        $exist = $inDB->get_fields('cms_users', "LOWER(nickname)='{$nickname}' AND is_deleted=0", 'nickname');
+        if (isset($exist['nickname'])){
+            $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
+            $string.= ($max['id'] + 1);
+        }
+
+        return $string;
+    }
+
 
     private function sendGreetsMessage($user_id, $login, $pass)
     {
