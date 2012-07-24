@@ -9,9 +9,9 @@ class p_ulogin extends cmsPlugin
         parent::__construct();
 
         $this->info['plugin'] = 'p_ulogin';
-        $this->info['title'] = 'Авторизация Ulogin';
+        $this->info['title'] = 'РђРІС‚РѕСЂРёР·Р°С†РёСЏ Ulogin';
         $this->info['type'] = 'Auth';
-        $this->info['description'] = 'Авторизация с помощью социальных сетей';
+        $this->info['description'] = 'РђРІС‚РѕСЂРёР·Р°С†РёСЏ СЃ РїРѕРјРѕС‰СЊСЋ СЃРѕС†РёР°Р»СЊРЅС‹С… СЃРµС‚РµР№';
         $this->info['author'] = 'cramen';
         $this->info['version'] = '0.2';
 
@@ -28,8 +28,8 @@ class p_ulogin extends cmsPlugin
     {
 
         if (!ini_get('allow_url_fopen')) {
-            $error = '<h4>Ошибка установки плагина</h4>';
-            $error .= '<p>Для работы плагина на вашем хостинге директива <b>allow_url_fopen</b> в php.ini должна быть включена</p>';
+            $error = '<h4>РћС€РёР±РєР° СѓСЃС‚Р°РЅРѕРІРєРё РїР»Р°РіРёРЅР°</h4>';
+            $error .= '<p>Р”Р»СЏ СЂР°Р±РѕС‚С‹ РїР»Р°РіРёРЅР° РЅР° РІР°С€РµРј С…РѕСЃС‚РёРЅРіРµ РґРёСЂРµРєС‚РёРІР° <b>allow_url_fopen</b> РІ php.ini РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РІРєР»СЋС‡РµРЅР°</p>';
             die($error);
         }
 
@@ -110,7 +110,7 @@ class p_ulogin extends cmsPlugin
         $ulogin_token_url = 'http://ulogin.ru/token.php';
         $ulogin_token_url .= '?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'];
 
-        // получение профиля
+        // РїРѕР»СѓС‡РµРЅРёРµ РїСЂРѕС„РёР»СЏ
         $json_string = file_get_contents($ulogin_token_url);
         $profile = json_decode($json_string, true);
 
@@ -129,12 +129,12 @@ class p_ulogin extends cmsPlugin
             $user_id = $this->createUser($profile);
         }
 
-        // если пользователь уже был или успешно создан, авторизуем
+        // РµСЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓР¶Рµ Р±С‹Р» РёР»Рё СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ, Р°РІС‚РѕСЂРёР·СѓРµРј
         if ($user_id) {
             $this->loginUser($user_id);
         }
 
-        // если авторизация не удалась, редиректим на сообщение об ошибке
+        // РµСЃР»Рё Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РЅРµ СѓРґР°Р»Р°СЃСЊ, СЂРµРґРёСЂРµРєС‚РёРј РЅР° СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
         $inCore->redirect('/auth/error.html');
         exit;
 
@@ -237,7 +237,7 @@ class p_ulogin extends cmsPlugin
         }
 
         if (!$nickname) {
-            // не указано вообще ничего
+            // РЅРµ СѓРєР°Р·Р°РЅРѕ РІРѕРѕР±С‰Рµ РЅРёС‡РµРіРѕ
             $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
             $nickname = 'user' . ($max['id'] + 1);
         }else{
@@ -268,7 +268,7 @@ class p_ulogin extends cmsPlugin
         
 
         /**
-         *  День рождения 
+         *  Р”РµРЅСЊ СЂРѕР¶РґРµРЅРёСЏ 
          */
         if (isset($profile['bdate'])) 
         {
@@ -283,7 +283,7 @@ class p_ulogin extends cmsPlugin
 
 
         /**
-         * Пол 
+         * РџРѕР» 
          */
         if (isset($profile['sex']) && $profile['sex']) 
         {
@@ -309,7 +309,7 @@ class p_ulogin extends cmsPlugin
         $user_id = $inDB->get_last_id('cms_users');
 
         
-        // создаем профиль пользователя
+        // СЃРѕР·РґР°РµРј РїСЂРѕС„РёР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
         if ($user_id) {
 
             $sql = "INSERT INTO cms_user_profiles (user_id, city, description, showmail, showbirth, showicq, karma, allow_who, gender)
@@ -347,20 +347,20 @@ class p_ulogin extends cmsPlugin
 
         $string = trim($string);
         $string = mb_strtolower($string, 'cp1251');
-        $string = preg_replace('/[^a-zA-Zа-яА-Я0-9]/i', '', $string);
+        $string = preg_replace('/[^a-zA-ZР°-СЏРђ-РЇ0-9]/i', '', $string);
 
         while (strstr($string, '--')) {
             $string = str_replace('--', '-', $string);
         }
 
         $ru_en = array(
-            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd',
-            'е' => 'e', 'ё' => 'yo', 'ж' => 'zh', 'з' => 'z',
-            'и' => 'i', 'й' => 'i', 'к' => 'k', 'л' => 'l', 'м' => 'm',
-            'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's',
-            'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c',
-            'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sh', 'ъ' => '', 'ы' => 'y',
-            'ь' => '', 'э' => 'ye', 'ю' => 'yu', 'я' => 'ja'
+            'Р°' => 'a', 'Р±' => 'b', 'РІ' => 'v', 'Рі' => 'g', 'Рґ' => 'd',
+            'Рµ' => 'e', 'С‘' => 'yo', 'Р¶' => 'zh', 'Р·' => 'z',
+            'Рё' => 'i', 'Р№' => 'i', 'Рє' => 'k', 'Р»' => 'l', 'Рј' => 'm',
+            'РЅ' => 'n', 'Рѕ' => 'o', 'Рї' => 'p', 'СЂ' => 'r', 'СЃ' => 's',
+            'С‚' => 't', 'Сѓ' => 'u', 'С„' => 'f', 'С…' => 'h', 'С†' => 'c',
+            'С‡' => 'ch', 'С€' => 'sh', 'С‰' => 'sh', 'СЉ' => '', 'С‹' => 'y',
+            'СЊ' => '', 'СЌ' => 'ye', 'СЋ' => 'yu', 'СЏ' => 'ja'
         );
 
         foreach ($ru_en as $ru => $en) {
@@ -393,12 +393,12 @@ class p_ulogin extends cmsPlugin
     private function sendGreetsMessage($user_id, $login, $pass)
     {
 
-        $msg = "<div>Здравствуйте. Благодарим за регистрацию на нашем сайте.</div>";
-        $msg .= "<div>Ваши реквизиты для входа на сайт:</div>";
-        $msg .= "<strong>Логин:</strong> {$login}<br />";
-        $msg .= "<strong>Пароль:</strong> {$pass}<br />";
+        $msg = "<div>Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ. Р‘Р»Р°РіРѕРґР°СЂРёРј Р·Р° СЂРµРіРёСЃС‚СЂР°С†РёСЋ РЅР° РЅР°С€РµРј СЃР°Р№С‚Рµ.</div>";
+        $msg .= "<div>Р’Р°С€Рё СЂРµРєРІРёР·РёС‚С‹ РґР»СЏ РІС…РѕРґР° РЅР° СЃР°Р№С‚:</div>";
+        $msg .= "<strong>Р›РѕРіРёРЅ:</strong> {$login}<br />";
+        $msg .= "<strong>РџР°СЂРѕР»СЊ:</strong> {$pass}<br />";
 
-        $msg .= '<div>Вы можете сменить никнейм, пароль и email в <a href="/users/' . $user_id . '/editprofile.html">настройках</a> вашего профиля</div>';
+        $msg .= '<div>Р’С‹ РјРѕР¶РµС‚Рµ СЃРјРµРЅРёС‚СЊ РЅРёРєРЅРµР№Рј, РїР°СЂРѕР»СЊ Рё email РІ <a href="/users/' . $user_id . '/editprofile.html">РЅР°СЃС‚СЂРѕР№РєР°С…</a> РІР°С€РµРіРѕ РїСЂРѕС„РёР»СЏ</div>';
 
         cmsUser::sendMessage(USER_MASSMAIL, $user_id, $msg);
 
