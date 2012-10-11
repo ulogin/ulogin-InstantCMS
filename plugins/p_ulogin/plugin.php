@@ -9,18 +9,22 @@ class p_ulogin extends cmsPlugin
         parent::__construct();
 
         $this->info['plugin'] = 'p_ulogin';
-        $this->info['title'] = 'РђРІС‚РѕСЂРёР·Р°С†РёСЏ Ulogin';
+        $this->info['title'] = 'Авторизация Ulogin';
         $this->info['type'] = 'Auth';
-        $this->info['description'] = 'РђРІС‚РѕСЂРёР·Р°С†РёСЏ СЃ РїРѕРјРѕС‰СЊСЋ СЃРѕС†РёР°Р»СЊРЅС‹С… СЃРµС‚РµР№';
-        $this->info['author'] = 'cramen';
-        $this->info['version'] = '0.2';
+        $this->info['description'] = 'Авторизация с помощью социальных сетей';
+        $this->info['author'] = 'uLogin Team';
+        $this->info['version'] = '1.0';
 
         $this->config['Providers'] = 'vkontakte,odnoklassniki,mailru,facebook';
-        $this->config['Hidden'] = 'twitter,google,yandex,livejournal,openid';
+        $this->config['Hidden'] = 'other';
+        $this->config['Verify'] = 1;
 
         $this->events[] = 'ULOGIN_BUTTON';
         $this->events[] = 'ULOGIN_BUTTON_SMALL';
+        $this->events[] = 'ULOGIN_SYNC_PANEL';
         $this->events[] = 'ULOGIN_AUTH';
+        $this->events[] = 'ULOGIN_SYNC';
+        $this->events[] = 'ULOGIN_DETTACH';
 
     }
 
@@ -28,8 +32,8 @@ class p_ulogin extends cmsPlugin
     {
 
         if (!ini_get('allow_url_fopen')) {
-            $error = '<h4>РћС€РёР±РєР° СѓСЃС‚Р°РЅРѕРІРєРё РїР»Р°РіРёРЅР°</h4>';
-            $error .= '<p>Р”Р»СЏ СЂР°Р±РѕС‚С‹ РїР»Р°РіРёРЅР° РЅР° РІР°С€РµРј С…РѕСЃС‚РёРЅРіРµ РґРёСЂРµРєС‚РёРІР° <b>allow_url_fopen</b> РІ php.ini РґРѕР»Р¶РЅР° Р±С‹С‚СЊ РІРєР»СЋС‡РµРЅР°</p>';
+            $error = '<h4>Ошибка установки плагина</h4>';
+            $error .= '<p>Для работы плагина на вашем хостинге директива <b>allow_url_fopen</b> в php.ini должна быть включена</p>';
             die($error);
         }
 
@@ -38,6 +42,12 @@ class p_ulogin extends cmsPlugin
         if (!$inDB->isFieldExists('cms_users', 'ulogin_id')) {
 
             $inDB->query("ALTER TABLE `cms_users` ADD `ulogin_id` VARCHAR( 250 ) NULL, ADD INDEX ( `ulogin_id` )");
+
+        }
+
+        if (!$inDB->isFieldExists('cms_users', 'main_id')) {
+
+            $inDB->query("ALTER TABLE `cms_users` ADD `main_id` INT");
 
         }
 
@@ -66,8 +76,17 @@ class p_ulogin extends cmsPlugin
                 $item['id'] = isset($item['id'])?$item['id']:'uLoginSmall';
                 $item = $this->showUloginButton($item);
                 break;
+            case 'ULOGIN_SYNC_PANEL':
+                $item = $this->showUloginSyncPanel();
+                break;
             case 'ULOGIN_AUTH':
                 $item = $this->uloginAuth();
+                break;
+            case 'ULOGIN_SYNC':
+                $item = $this->uloginSync();
+                break;
+            case 'ULOGIN_DETTACH':
+                $item = $this->uloginDettach();
                 break;
         }
 
@@ -84,9 +103,11 @@ class p_ulogin extends cmsPlugin
         $token_url = urlencode(HOST . '/plugins/p_ulogin/auth.php');
         $providers = $this->config['Providers'];
         $hidden = $this->config['Hidden'];
+        $verify = $this->config['Verify'];
 
-        $html = '<div id="'.$id.'" x-ulogin-params="display='.($small?'small':'panel').
-                '&fields=first_name,last_name,nickname,city,photo,photo_big,bdate,sex,email,network&providers='. $providers .
+
+        $html = '<div id="'.$id.'" x-ulogin-params="display='.($small?'small':'panel').'&verify='.$verify.
+                '&fields=first_name,last_name,nickname,city,photo,photo_big,bdate,sex,email&providers='. $providers .
                 '&hidden=' . $hidden . '&redirect_uri=' . $token_url . '"></div>';
 
         echo $html;
@@ -95,6 +116,39 @@ class p_ulogin extends cmsPlugin
 
     }
 
+
+    private function showUloginSyncPanel($item = array()){
+
+        $small = (isset($item['small']) && $item['small'])?true:false;
+        $id = isset($item['id'])?$item['id']:'uLogin';
+
+        $token_url = urlencode(HOST . '/plugins/p_ulogin/sync.php');
+        $providers = $this->config['Providers'];
+        $hidden = $this->config['Hidden'];
+
+        $user_id = $_SESSION['user']['id'];
+
+        $users = $this->getAttachedUsers($user_id);
+
+        $html = "<div class='field'><div class='title'>Подключенные профили</div></div>";
+
+        foreach($users as  $user){
+
+            $html.="<div class='field'><div class='value'><a href='".$user['identity']."'>".$user['identity']."</a></div><div class='value' style='float:right;'><a href='/plugins/p_ulogin/dettach.php?id=".$user['id']."'>[Отключить]</a></div></div>";
+
+        }
+
+        $html.= "<div class='field'><div class='title'>Подключить профиль:</div></div>";
+
+        $html .= '<div id="'.$id.'" x-ulogin-params="display='.($small?'small':'panel').
+            '&fields=first_name,last_name,nickname,city,photo,photo_big,bdate,sex,email&providers='. $providers .
+            '&hidden=' . $hidden . '&redirect_uri=' . $token_url . '"></div>';
+
+        echo $html;
+
+        return;
+
+    }
 
     private function uloginAuth()
     {
@@ -110,7 +164,7 @@ class p_ulogin extends cmsPlugin
         $ulogin_token_url = 'http://ulogin.ru/token.php';
         $ulogin_token_url .= '?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'];
 
-        // РїРѕР»СѓС‡РµРЅРёРµ РїСЂРѕС„РёР»СЏ
+        // получение профиля
         $json_string = file_get_contents($ulogin_token_url);
         $profile = json_decode($json_string, true);
 
@@ -129,12 +183,12 @@ class p_ulogin extends cmsPlugin
             $user_id = $this->createUser($profile);
         }
 
-        // РµСЃР»Рё РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ СѓР¶Рµ Р±С‹Р» РёР»Рё СѓСЃРїРµС€РЅРѕ СЃРѕР·РґР°РЅ, Р°РІС‚РѕСЂРёР·СѓРµРј
+        // если пользователь уже был или успешно создан, авторизуем
         if ($user_id) {
             $this->loginUser($user_id);
         }
 
-        // РµСЃР»Рё Р°РІС‚РѕСЂРёР·Р°С†РёСЏ РЅРµ СѓРґР°Р»Р°СЃСЊ, СЂРµРґРёСЂРµРєС‚РёРј РЅР° СЃРѕРѕР±С‰РµРЅРёРµ РѕР± РѕС€РёР±РєРµ
+        // если авторизация не удалась, редиректим на сообщение об ошибке
         $inCore->redirect('/auth/error.html');
         exit;
 
@@ -155,8 +209,8 @@ class p_ulogin extends cmsPlugin
         }
 
         $sql = "SELECT *
-                   FROM cms_users
-                   WHERE id = '{$user_id}'";
+                FROM cms_users
+                WHERE id = '{$user_id}'";
 
         $result = $inDB->query($sql);
 
@@ -166,6 +220,38 @@ class p_ulogin extends cmsPlugin
             $user = $inDB->fetch_assoc($result);
 
             if (!cmsUser::isBanned($user['id'])) {
+
+                while (isset($user['main_id']) && $user['main_id'] !=0 ){
+
+                    $main_id = $user['main_id'];
+                    $sql = "SELECT *
+                            FROM cms_users
+                            WHERE id = '{$main_id}'";
+
+                    $result = $inDB->query($sql);
+
+                    if ($inDB->num_rows($result) == 1) {
+
+                        $main_user = $inDB->fetch_assoc($result);
+
+                        if (!cmsUser::isBanned($user['id'])) {
+
+                            $user = $main_user;
+                            $user_id = $main_id;
+
+                        }else{
+
+                            $inDB->query("UPDATE cms_banlist SET ip = '$current_ip' WHERE user_id = " . $user['id'] . " AND status = 1");
+                            break;
+
+                        }
+                    }else{
+
+                        break;
+
+                    }
+
+                }
 
                 $_SESSION['user'] = cmsUser::createUser($user);
 
@@ -219,7 +305,7 @@ class p_ulogin extends cmsPlugin
 
     }
 
-    private function createUser($profile)
+    private function createUser($profile, $sync = false)
     {
 
         $inCore = cmsCore::getInstance();
@@ -237,7 +323,7 @@ class p_ulogin extends cmsPlugin
         }
 
         if (!$nickname) {
-            // РЅРµ СѓРєР°Р·Р°РЅРѕ РІРѕРѕР±С‰Рµ РЅРёС‡РµРіРѕ
+            // не указано вообще ничего
             $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
             $nickname = 'user' . ($max['id'] + 1);
         }else{
@@ -253,22 +339,33 @@ class p_ulogin extends cmsPlugin
         $email = $inDB->escape_string($profile['email']);
 
         $already = $inDB->get_fields('cms_users', "login='{$login}' AND is_deleted=0", 'login');
-        $already_email = $inDB->get_field('cms_users', "email='{$email}' AND is_deleted=0", 'email');
+        $email_id = $inDB->get_field('cms_users', "email='{$email}' AND is_deleted=0", 'id');
 
         if ($already['login'] == $login) {
             $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
             $login .= ($max['id'] + 1);
         }
         $login = $inDB->escape_string($login);
-        
-        if ($email && $already_email == $email){
+
+        $main_id = 0;
+
+        if ($email && $email_id){
+
             list($mailName,$mailDomain) = explode('@', $email);
             $email = $mailName.$profile['network'].'@'.$mailDomain;
+
+            if ($profile['verified_email'] == '1' && !$sync){
+
+                $main_id = $email_id;
+                $email = $mailName.'@'.$mailDomain;
+
+            }
+
         }
         
 
         /**
-         *  Р”РµРЅСЊ СЂРѕР¶РґРµРЅРёСЏ 
+         *  День рождения 
          */
         if (isset($profile['bdate'])) 
         {
@@ -283,7 +380,7 @@ class p_ulogin extends cmsPlugin
 
 
         /**
-         * РџРѕР» 
+         * Пол 
          */
         if (isset($profile['sex']) && $profile['sex']) 
         {
@@ -300,16 +397,16 @@ class p_ulogin extends cmsPlugin
             'nickname' => $nickname
         );
 
-        $sql = "INSERT INTO cms_users (login, nickname, password, regdate, ulogin_id, birthdate, email)
+        $sql = "INSERT INTO cms_users (login, nickname, password, regdate, ulogin_id, birthdate, email, main_id)
                 VALUES ('$login', '$nickname', '$pass', NOW(), '" . $inDB->escape_string($profile["identity"]) . 
-                "' , '".$birthdate."', '".$email."')";
+                "' , '".$birthdate."', '".$email."',".$main_id.")";
 
         $inDB->query($sql);
 
         $user_id = $inDB->get_last_id('cms_users');
 
         
-        // СЃРѕР·РґР°РµРј РїСЂРѕС„РёР»СЊ РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ
+        // создаем профиль пользователя
         if ($user_id) {
 
             $sql = "INSERT INTO cms_user_profiles (user_id, city, description, showmail, showbirth, showicq, karma, allow_who, gender)
@@ -331,6 +428,128 @@ class p_ulogin extends cmsPlugin
 
     }
 
+    private function uloginSync(){
+
+        $inCore = cmsCore::getInstance();
+
+        $token = $inCore->request('token', 'str', '');
+
+        if (!$token) {
+            exit;
+        }
+
+        $ulogin_token_url = 'http://ulogin.ru/token.php';
+        $ulogin_token_url .= '?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'];
+
+        // получение профиля
+        $json_string = file_get_contents($ulogin_token_url);
+        $profile = json_decode($json_string, true);
+
+        foreach ($profile as $key => $el)
+        {
+            $profile[$key] = iconv('UTF-8', 'Windows-1251', $el);
+        }
+
+        if (empty($profile) || isset($profile['error'])) {
+
+            exit;
+        }
+
+        $ids = $this->getMainUserProfileByIdentity($profile['identity']);
+
+        $current_id = $_SESSION['user']['id'];
+        $login = $_SESSION['user']['login'];
+
+        if ($ids['id'] != $current_id && $ids['main_id'] != $current_id){
+
+            $user_id = $ids['id'] ? $ids['id'] : $this->createUser($profile, true);
+
+            if ($user_id){
+
+                $this->attachUser($user_id, $current_id);
+
+            }
+
+        }
+
+        $inCore->redirect('/users/'.$login);
+
+    }
+
+    private function uloginDettach(){
+
+        if ($_SESSION['user']['id']){
+
+            $inCore = cmsCore::getInstance();
+
+            $id = $inCore->request('id', 'str', '');
+            $login = $_SESSION['user']['login'];
+
+            if ($id) {
+
+                $this->dettachUser($id);
+
+            }
+
+            $inCore->redirect('/users/'.$login);
+        }
+
+        $inCore->redirect('/');
+
+    }
+
+    private function attachUser($user_id, $main_id){
+
+        $inDB = cmsDatabase::getInstance();
+        $sql = "UPDATE cms_users SET main_id=".$main_id." WHERE id=".$user_id;
+        $inDB->query($sql);
+
+    }
+
+    private function dettachUser($user_id){
+
+        $inDB = cmsDatabase::getInstance();
+        $sql = "UPDATE cms_users SET main_id=0 WHERE id=".$user_id;
+        $inDB->query($sql);
+
+    }
+
+    private function getAttachedUsers($user_id){
+
+        $users = array();
+
+        if ($user_id){
+
+            $inDB = cmsDatabase::getInstance();
+
+            $sql = "SELECT ulogin_id, id
+                    FROM cms_users
+                    WHERE main_id = '{$user_id}'";
+
+            $result = $inDB->query($sql);
+
+            if ($inDB->num_rows($result) > 0) {
+
+                while($user = $inDB->fetch_assoc($result)){
+
+                    $users[] = array('identity' => $user['ulogin_id'], 'id' => $user['id']);
+
+                    $attached = $this->getAttachedUsers($user['id']);
+
+                    if (count($attached) > 0){
+
+                        $users = array_merge($attached, $users);
+
+                    }
+
+                }
+            }
+
+        }
+
+        return $users;
+
+    }
 
     private function getUserByIdentity($identity)
     {
@@ -341,26 +560,34 @@ class p_ulogin extends cmsPlugin
 
     }
 
+    private function getMainUserProfileByIdentity($identity){
+
+        $inDB = cmsDatabase::getInstance();
+
+        return $inDB->get_fields('cms_users', "ulogin_id='{$identity}'", 'id,main_id');
+
+    }
+
 
     private function makeLogin($string)
     {
 
         $string = trim($string);
         $string = mb_strtolower($string, 'cp1251');
-        $string = preg_replace('/[^a-zA-ZР°-СЏРђ-РЇ0-9]/i', '', $string);
+        $string = preg_replace('/[^a-zA-Zа-яА-Я0-9]/i', '', $string);
 
         while (strstr($string, '--')) {
             $string = str_replace('--', '-', $string);
         }
 
         $ru_en = array(
-            'Р°' => 'a', 'Р±' => 'b', 'РІ' => 'v', 'Рі' => 'g', 'Рґ' => 'd',
-            'Рµ' => 'e', 'С‘' => 'yo', 'Р¶' => 'zh', 'Р·' => 'z',
-            'Рё' => 'i', 'Р№' => 'i', 'Рє' => 'k', 'Р»' => 'l', 'Рј' => 'm',
-            'РЅ' => 'n', 'Рѕ' => 'o', 'Рї' => 'p', 'СЂ' => 'r', 'СЃ' => 's',
-            'С‚' => 't', 'Сѓ' => 'u', 'С„' => 'f', 'С…' => 'h', 'С†' => 'c',
-            'С‡' => 'ch', 'С€' => 'sh', 'С‰' => 'sh', 'СЉ' => '', 'С‹' => 'y',
-            'СЊ' => '', 'СЌ' => 'ye', 'СЋ' => 'yu', 'СЏ' => 'ja'
+            'а' => 'a', 'б' => 'b', 'в' => 'v', 'г' => 'g', 'д' => 'd',
+            'е' => 'e', 'ё' => 'yo', 'ж' => 'zh', 'з' => 'z',
+            'и' => 'i', 'й' => 'i', 'к' => 'k', 'л' => 'l', 'м' => 'm',
+            'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r', 'с' => 's',
+            'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h', 'ц' => 'c',
+            'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sh', 'ъ' => '', 'ы' => 'y',
+            'ь' => '', 'э' => 'ye', 'ю' => 'yu', 'я' => 'ja'
         );
 
         foreach ($ru_en as $ru => $en) {
@@ -393,12 +620,12 @@ class p_ulogin extends cmsPlugin
     private function sendGreetsMessage($user_id, $login, $pass)
     {
 
-        $msg = "<div>Р—РґСЂР°РІСЃС‚РІСѓР№С‚Рµ. Р‘Р»Р°РіРѕРґР°СЂРёРј Р·Р° СЂРµРіРёСЃС‚СЂР°С†РёСЋ РЅР° РЅР°С€РµРј СЃР°Р№С‚Рµ.</div>";
-        $msg .= "<div>Р’Р°С€Рё СЂРµРєРІРёР·РёС‚С‹ РґР»СЏ РІС…РѕРґР° РЅР° СЃР°Р№С‚:</div>";
-        $msg .= "<strong>Р›РѕРіРёРЅ:</strong> {$login}<br />";
-        $msg .= "<strong>РџР°СЂРѕР»СЊ:</strong> {$pass}<br />";
+        $msg = "<div>Здравствуйте. Благодарим за регистрацию на нашем сайте.</div>";
+        $msg .= "<div>Ваши реквизиты для входа на сайт:</div>";
+        $msg .= "<strong>Логин:</strong> {$login}<br />";
+        $msg .= "<strong>Пароль:</strong> {$pass}<br />";
 
-        $msg .= '<div>Р’С‹ РјРѕР¶РµС‚Рµ СЃРјРµРЅРёС‚СЊ РЅРёРєРЅРµР№Рј, РїР°СЂРѕР»СЊ Рё email РІ <a href="/users/' . $user_id . '/editprofile.html">РЅР°СЃС‚СЂРѕР№РєР°С…</a> РІР°С€РµРіРѕ РїСЂРѕС„РёР»СЏ</div>';
+        $msg .= '<div>Вы можете сменить никнейм, пароль и email в <a href="/users/' . $user_id . '/editprofile.html">настройках</a> вашего профиля</div>';
 
         cmsUser::sendMessage(USER_MASSMAIL, $user_id, $msg);
 
