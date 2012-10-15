@@ -165,8 +165,29 @@ class p_ulogin extends cmsPlugin
         $ulogin_token_url .= '?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'];
 
         // получение профиля
+
+
+        if(in_array('curl', get_loaded_extensions())){
+
+            $request = curl_init('http://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST']);
+            curl_setopt($request, CURLOPT_RETURNTRANSFER, 1);
+            $json_string = curl_exec($request);
+
+            if ($json_string)
+                $profile = json_decode($json_string, true);
+
+        }elseif (function_exists('file_get_contents') && ini_get('allow_url_fopen')){
+
         $json_string = file_get_contents($ulogin_token_url);
         $profile = json_decode($json_string, true);
+
+        }else{
+
+            $profile = array('error'=>'curl or fopen wrapper is required');
+
+        }
+
+
 
         foreach ($profile as $key => $el)
         {
@@ -181,6 +202,79 @@ class p_ulogin extends cmsPlugin
 
         if (!$user_id) {
             $user_id = $this->createUser($profile);
+        }else{
+
+            // проверяем аккаунт на подключение к другому аккаунту
+            $inDB = cmsDatabase::getInstance();
+            $main_id  = $inDB->get_field('cms_users', "id={$user_id}", 'main_id');
+
+            if ($main_id == null) {
+
+                $profile_id  = $inDB->get_field('cms_user_profiles', "user_id={$user_id}", 'id');
+
+                // если аккаунт не был отключен от другого и имеет свой профиль
+                if ($profile_id){
+
+                    if ($profile['verified_email'] == '1'){ //пытаемся подключить по email
+
+                        $email_id  = $inDB->get_field('cms_users', "email='{$profile['email']}' AND is_deleted=0 AND main_id=0", 'id');
+
+                        if ($email_id){ //аккаунт с таким емейлом найден
+
+                            //подключаем аккаунт
+                            $sql = "UPDATE cms_users SET main_id=".$email_id.", email='".$profile['email']."' WHERE id=".$user_id;
+                            $inDB->query($sql);
+
+                            //удаляем профиль
+                            $sql = "DELETE FROM cms_user_profiles WHERE id=".$profile_id;
+                            $inDB->query($sql);
+
+                        }else{ //аккаунт не найден, делаем текущий аккаунт основным
+
+                            $sql = "UPDATE cms_users SET main_id=0, email='".$profile['email']."' WHERE id=".$user_id;
+                            $inDB->query($sql);
+
+                        }
+
+                    }
+
+                }else{ //аккаунт был отключен от основного аккаунта и без своего профиля
+
+                    //пытаемся подключить по email
+                    if ($profile['verified_email'] == '1'){
+
+                        $email_id = $inDB->get_field('cms_users', "email='{$profile['email']}' AND is_deleted=0 AND main_id=0", 'id');
+
+                        if ($email_id){ //аккаунт с таким емейлом найден
+
+                            //подключаем аккаунт
+                            $sql = "UPDATE cms_users SET main_id=".$email_id.", email='".$profile['email']."' WHERE id=".$user_id;
+                            $inDB->query($sql);
+
+                        }else{//профиль с таким email не найден
+
+                            //удаляем аккаунт
+                            $sql = "DELETE FROM cms_users WHERE id=".$user_id;
+                            $inDB->query($sql);
+
+                            //и создаем заново с профилем
+                            $user_id = $this->createUser($profile);
+
+                        }
+
+                    }else{
+
+                        //удаляем аккаунт
+                        $sql = "DELETE FROM cms_users WHERE id=".$user_id;
+                        $inDB->query($sql);
+
+                        //и создаем заново с профилем
+                        $user_id = $this->createUser($profile);
+
+                    }
+                }
+
+            }
         }
 
         // если пользователь уже был или успешно создан, авторизуем
@@ -354,7 +448,7 @@ class p_ulogin extends cmsPlugin
             list($mailName,$mailDomain) = explode('@', $email);
             $email = $mailName.$profile['network'].'@'.$mailDomain;
 
-            if ($profile['verified_email'] == '1' && !$sync){
+            if ($profile['verified_email'] == '1'){
 
                 $main_id = $email_id;
                 $email = $mailName.'@'.$mailDomain;
@@ -407,7 +501,7 @@ class p_ulogin extends cmsPlugin
 
         
         // создаем профиль пользователя
-        if ($user_id) {
+        if ($user_id && !$sync) {
 
             $sql = "INSERT INTO cms_user_profiles (user_id, city, description, showmail, showbirth, showicq, karma, allow_who, gender)
                     VALUES ('{$user_id}', '{$city}', '', '0', '0', '1', '0', 'all' ,'".$sex."')";
@@ -504,12 +598,22 @@ class p_ulogin extends cmsPlugin
         $sql = "UPDATE cms_users SET main_id=".$main_id." WHERE id=".$user_id;
         $inDB->query($sql);
 
+        $p_id = $inDB->get_field('cms_user_profiles', "user_id='{$user_id}'", 'id');
+
+        if($p_id){
+
+            $sql = "DELETE FROM cms_user_profiles WHERE id=".$p_id;
+            $inDB->query($sql);
+
+        }
+
+
     }
 
     private function dettachUser($user_id){
 
         $inDB = cmsDatabase::getInstance();
-        $sql = "UPDATE cms_users SET main_id=0 WHERE id=".$user_id;
+        $sql = "UPDATE cms_users SET main_id=null WHERE id=".$user_id;
         $inDB->query($sql);
 
     }
