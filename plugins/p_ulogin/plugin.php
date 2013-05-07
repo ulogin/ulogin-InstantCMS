@@ -676,7 +676,10 @@ class p_ulogin extends cmsPlugin
         }
 
         if (!$string) {
-            $string = 'untitled';
+            
+			$inDB = cmsDatabase::getInstance();
+		    $max = $inDB->get_fields('cms_users', 'id>0', 'id', 'id DESC');
+            $string = 'user'. ($max['id'] + 1);
         }
 
         return $string;
