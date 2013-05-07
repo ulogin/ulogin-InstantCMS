@@ -1,10 +1,6 @@
-{* ================================================================================ *}
-{* ========================= œÓÙËÎ¸ ÔÓÎ¸ÁÓ‚‡ÚÂÎˇ ================================= *}
-{* ================================================================================ *}
-
 {add_js file='includes/jquery/tabs/jquery.ui.min.js'}
+{add_css file='includes/jquery/tabs/tabs.css'}
 {add_js file="components/users/js/profile.js"}
-{add_css file='includes/jquery/tabs/tabs.css'}					
 
 {literal}
 	<script type="text/javascript">
@@ -17,12 +13,22 @@
 <div id="usertitle">
 
     <div id="user_ratings">
-        <div class="karma" title="{$LANG.KARMA}" id="u_karma">
-            {if $usr.karma_int >= 0}
-                <div class="value-positive">{$usr.karma}</div>
-            {else}
-                <div class="value-negative">{$usr.karma}</div>
-            {/if}
+        <div class="karma" title="{$LANG.KARMA}">
+        	<div class="{if $usr.karma >= 0}value-positive{else}value-negative{/if}" id="u_karma_cont">
+                <table cellpadding="2" cellspacing="0"><tr>
+                    <td class="sign_link" style="color:green">
+                    {if $usr.can_change_karma}
+                        <a href="javascript:void(0)" onclick="users.changeKarma('{$usr.id}', 'plus');return false;" title="{$LANG.KARMA} +"><img src="/templates/{template}/images/icons/karma_up.png" border="0" alt="{$LANG.KARMA} +"/></a>
+                    {/if}
+                    </td>
+                    <td><span class="user_karma_point" id="u_karma">{$usr.karma}</span></td>
+                    <td style="color:red" class="sign_link">
+                    {if $usr.can_change_karma}
+                        <a href="javascript:void(0)" onclick="users.changeKarma('{$usr.id}', 'minus'); return false;" title="{$LANG.KARMA} -"><img src="/templates/{template}/images/icons/karma_down.png" border="0" alt="{$LANG.KARMA} -"/></a>
+                    {/if}
+                    </td>
+                </tr></table>
+            </div>
         </div>
         <div class="rating" title="{$LANG.RATING}">
             <div class="value">{$usr.user_rating}</div>
@@ -34,15 +40,14 @@
     </div>
 
     <div class="con_heading" id="nickname">
-        {$usr.nickname}
+        {$usr.nickname} {if $usr.banned}<span style="color:red; font-size:12px;">{$LANG.USER_IN_BANLIST}</span>{/if}
     </div>
-    {* {if $cfg.showgroup}<div class="usr_group" style="float:right">{$usr.grp}</div>{/if} *}
-    {* {if $usr.banned}<div style="color:red;padding:10px;">{$LANG.USER_IN_BANLIST}</div>{/if} *}
+
 </div>
 
 <div class="usr_status_bar">
     <div class="usr_status_text" {if !$usr.status_text}style="display:none"{/if}>
-        <span>{$usr.status_text}</span>
+        <span>{$usr.status_text|escape:'html'}</span>
         <span class="usr_status_date" >// {$usr.status_date} {$LANG.BACK}</span>
     </div>
     {if $myprofile || $is_admin}
@@ -57,105 +62,102 @@
 				<tr>
 					<td align="center" valign="middle">
                         <div class="usr_avatar">
-                            {$usr.avatar}
+                            <img border="0" class="usr_img" src="{$usr.avatar}" />
                         </div>
 
-                        {if $usr.is_new_friends}
-							<div class="usr_friends_query">{$usr.new_friends}</div>
-				  		{/if}
-
 						{if $is_auth}
-{* ===============================ÏÂÌ˛ ‚ ÔÓÙËÎÂ================================================= *}
+{* ===============================–º–µ–Ω—é –≤ –ø—Ä–æ—Ñ–∏–ª–µ================================================= *}
 							<div id="usermenu" style="">
                             <div class="usr_profile_menu">
 							<table cellpadding="0" cellspacing="6" ><tr>
 
 							{if !$myprofile}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/message.png" border="0"/></td>
-                                    <td><a href="/users/{$usr.id}/sendmessage.html" title="{$LANG.WRITE_MESS}">{$LANG.WRITE_MESS}</a></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/message.png" border="0"/></td>
+                                    <td><a class="ajaxlink" href="javascript:void(0)" title="{$LANG.WRITE_MESS}: {$usr.nickname|escape:'html'}" onclick="users.sendMess('{$usr.id}', 0, this);return false;">{$LANG.WRITE_MESS}</a></td>
                                 </tr>
 							{/if}
 
                             {if !$myprofile}
                             	{if !$usr.isfriend}
                                     <tr>
-                                        {if !$usr.isfriend_not_add}
-                                        <td><img src="/templates/_default_/images/icons/profile/friends.png" border="0"/></td>
-                                        <td><a href="/users/{$usr.id}/friendship.html" title="{$LANG.ADD_TO_FRIEND}">{$LANG.ADD_TO_FRIEND}</a></td>
-                                        {else}
-                                        <td><img src="/templates/_default_/images/icons/profile/nofriends.png" border="0"/></td>
-                                        <td><a href="/users/{$usr.id}/nofriends.html" title="{$LANG.STOP_FRIENDLY}">{$LANG.STOP_FRIENDLY}</a></td>
-                                        {/if}
+                                        <td><img src="/templates/{template}/images/icons/profile/friends.png" border="0"/></td>
+                                        <td><a class="ajaxlink" href="javascript:void(0)" title="{$usr.nickname|escape:'html'}" onclick="users.addFriend('{$usr.id}', this);return false;">{$LANG.ADD_TO_FRIEND}</a></td>
                                     </tr>
                                 {else}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/nofriends.png" border="0"/></td>
-                                    <td><a href="/users/{$usr.id}/nofriends.html" title="{$LANG.STOP_FRIENDLY}">{$LANG.STOP_FRIENDLY}</a></td>
+                                    <td class="add_friend_ajax" style="display: none;"><img src="/templates/{template}/images/icons/profile/friends.png" border="0"/></td>
+                                    <td class="add_friend_ajax" style="display: none;"><a class="ajaxlink" href="javascript:void(0)" title="{$usr.nickname|escape:'html'}" onclick="users.addFriend('{$usr.id}', this);return false;">{$LANG.ADD_TO_FRIEND}</a></td>
+                                    <td class="del_friend_ajax"><img src="/templates/{template}/images/icons/profile/nofriends.png" border="0"/></td>
+                                    <td class="del_friend_ajax"><a id="del_friend" class="ajaxlink" href="javascript:void(0)" title="{$usr.nickname|escape:'html'}" onclick="users.delFriend('{$usr.id}', this);return false;">{$LANG.STOP_FRIENDLY}</a></td>
                                 </tr>
                                 {/if}
                             {/if}
                          	{if $myprofile}
                             	{if $cfg.sw_msg}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/message.png" border="0"/></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/message.png" border="0"/></td>
                                     <td><a href="/users/{$usr.id}/messages.html" title="{$LANG.MY_MESS}">{$LANG.MY_MESS}</a></td>
                                 </tr>
                                 {/if}
-                                {if $usr.can_add_foto}
+                                {if $cfg.sw_photo}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/addphoto.png" border="0"/></td>
-                                    <td><a href="/users/{$usr.id}/addphoto.html" title="{$LANG.ADD_PHOTO}">{$LANG.ADD_PHOTO}</a></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/addphoto.png" border="0"/></td>
+                                    <td><a href="/users/addphoto.html" title="{$LANG.ADD_PHOTO}">{$LANG.ADD_PHOTO}</a></td>
                                 </tr>
                                 {/if}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/avatar.png" border="0"/></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/avatar.png" border="0"/></td>
                                     <td><a href="/users/{$usr.id}/avatar.html" title="{$LANG.SET_AVATAR}">{$LANG.SET_AVATAR}</a></td>
                                 </tr>
 								{if $usr.invites_count}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/invites.png" border="0"/></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/invites.png" border="0"/></td>
                                     <td><a href="/users/invites.html" title="{$LANG.MY_INVITES}">{$LANG.MY_INVITES}</a> {$usr.invites_count}</td>
                                 </tr>
 								{/if}
                                 <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/edit.png" border="0"/></td>
+                                    <td><img src="/templates/{template}/images/icons/profile/edit.png" border="0"/></td>
                                     <td><a href="/users/{$usr.id}/editprofile.html" title="{$LANG.CONFIG_PROFILE}">{$LANG.MY_CONFIG}</a></td>
                                 </tr>
                             {/if}
                             {if $is_admin && !$myprofile}
                             <tr>
-                                <td><img src="/templates/_default_/images/icons/profile/edit.png" border="0"/></td>
+                                <td><img src="/templates/{template}/images/icons/profile/edit.png" border="0"/></td>
                                 <td><a href="/users/{$usr.id}/editprofile.html" title="{$LANG.CONFIG_PROFILE}">{$LANG.CONFIG_PROFILE}</a></td>
                             </tr>
                             {/if}
                             <tr>
-                                <td><img src="/templates/_default_/images/icons/profile/karma.png" border="0"/></td>
+                                <td><img src="/templates/{template}/images/icons/profile/karma.png" border="0"/></td>
                                 <td><a href="/users/{$usr.id}/karma.html" title="{$LANG.KARMA_HISTORY}">{$LANG.KARMA_HISTORY}</a></td>
                             </tr>
 							{if !$myprofile}
                             	{if $is_admin}
                                 	{if !$usr.banned}
                                     <tr>
-                                        <td><img src="/templates/_default_/images/icons/profile/award.png" border="0"/></td>
+                                        <td><img src="/templates/{template}/images/icons/profile/award.png" border="0"/></td>
                                         <td><a href="/users/{$usr.id}/giveaward.html" title="{$LANG.TO_AWARD}">{$LANG.TO_AWARD}</a></td>
                                     </tr>
+                                    {if $usr.id != 1}
                                     <tr>
-                                        <td><img src="/templates/_default_/images/icons/profile/ban.png" border="0"/></td>
+                                        <td><img src="/templates/{template}/images/icons/profile/ban.png" border="0"/></td>
                                         <td><a href="/admin/index.php?view=userbanlist&do=add&to={$usr.id}" title="{$LANG.TO_BANN}">{$LANG.TO_BANN}</a></td>
                                     </tr>
                                     {/if}
-                                <tr>
-                                    <td><img src="/templates/_default_/images/icons/profile/delprofile.png" border="0"/></td>
-                                    <td><a href="/users/{$usr.id}/delprofile.html" title="{$LANG.DEL_PROFILE}">{$LANG.DEL_PROFILE}</a></td>
-                                </tr>
+                                    {/if}
+                                {if $usr.id != 1}
+                                    <tr>
+                                        <td><img src="/templates/{template}/images/icons/profile/delprofile.png" border="0"/></td>
+                                        <td><a href="/users/{$usr.id}/delprofile.html" title="{$LANG.DEL_PROFILE}">{$LANG.DEL_PROFILE}</a></td>
+                                    </tr>
+                                {/if}
                                 {/if}
                          	{/if}
 
                             </table></div>
                             </div>
 {* ================================================================================ *}
-						{/if}                        
+						{/if}
 					</td>
 				</tr>
 			</table>
@@ -165,25 +167,25 @@
 
                         <div id="user_profile_url">
                             <div>{$LANG.LINK_TO_THIS_PAGE}:</div>
-                            <a href="{$usr.profile_link}" title="{$usr.nickname}">{$usr.profile_link}</a>
+                            <a href="{$usr.profile_link}" title="{$usr.nickname|escape:'html'}">{$usr.profile_link}</a>
                         </div>
 
 					</td>
 				</tr>
 			</table>
 	    </td>
-    	<td valign="top" style="padding-left:10px">	
+    	<td valign="top" style="padding-left:10px">
 			<div id="profiletabs">
-				<ul id="tabs"> 
+				<ul id="tabs">
 					<li><a href="#upr_profile"><span>{$LANG.PROFILE}</span></a></li>
 					{if $myprofile && $cfg.sw_feed}
-						<li><a href="#upr_feed"><span>{$LANG.FEED}</span></a></li>
+						<li><a href="/actions/my_friends" title="upr_feed"><span>{$LANG.FEED}</span></a></li>
 					{/if}
-                    {if $myprofile}
+					{if $myprofile}
                         <li><a href="#upr_ulogin"><span>uLogin</span></a></li>
                     {/if}
 					{if $cfg.sw_clubs}
-						<li><a href="#upr_clubs"><span>{$LANG.CLUBS}</span></a></li>
+						<li><a href="/clubs/by_user_{$usr.id}" title="upr_clubs"><span>{$LANG.CLUBS}</span></a></li>
 					{/if}
                     {if $cfg.sw_awards}
                         <li><a href="#upr_awards"><span>{$LANG.AWARDS}</span></a></li>
@@ -191,20 +193,16 @@
                     {foreach key=id item=plugin from=$plugins}
                         <li><a href="#upr_{$plugin.name}"><span>{$plugin.title}</span></a></li>
                     {/foreach}
-				</ul> 
-				
-				{* ============================== «¿ À¿ƒ ¿ π1 ============================================== *}
+				</ul>
+
+				{* ============================== –ó–ê–ö–õ–ê–î–ö–ê ‚Ññ1 ============================================== *}
 				<div id="upr_profile">
 					<div class="user_profile_data">
-					
-						<div class="field">
-							<div class="title">{$LANG.STATUS}:</div>
-							<div class="value">{$usr.status}</div>
-						</div>						
+
 						<div class="field">
 							<div class="title">{$LANG.LAST_VISIT}:</div>
 							<div class="value">{$usr.flogdate}</div>
-						</div>						
+						</div>
 						<div class="field">
 							<div class="title">{$LANG.DATE_REGISTRATION}:</div>
 							<div class="value">
@@ -222,31 +220,31 @@
                         {if $usr.city}
 						<div class="field">
 							<div class="title">{$LANG.CITY}:</div>
-                            <div class="value"><a href="/users/city/{$usr.cityurl}">{$usr.city}</a></div>
+                            <div class="value"><a href="/users/city/{$usr.cityurl|escape:'html'}">{$usr.city}</a></div>
 						</div>
                         {/if}
-						
-						{if $usr.showbirth && $usr.birthdate}
+
+						{if $usr.showbirth && $usr.fbirthdate}
 						<div class="field">
 							<div class="title">{$LANG.BIRTH}:</div>
-							<div class="value">{$usr.birthdate}</div>
+							<div class="value">{$usr.fbirthdate}</div>
 						</div>
 						{/if}
-						
-						{if $usr.gender}
+
+						{if $usr.fgender}
 						<div class="field">
 							<div class="title">{$LANG.SEX}:</div>
-							<div class="value">{$usr.gender}</div>
+							<div class="value">{$usr.fgender}</div>
 						</div>
 						{/if}
-						
+
 						{if $usr.showicq && $usr.icq}
 						<div class="field">
 							<div class="title">ICQ:</div>
 							<div class="value">{$usr.icq}</div>
 						</div>
-						{/if}				
-						
+						{/if}
+
 						{if $usr.showmail}
 							{add_js file='includes/jquery/jquery.nospam.js'}
 							<div class="field">
@@ -254,41 +252,29 @@
 								<div class="value"><a href="#" rel="{$usr.email|NoSpam}" class="email">{$usr.email}</a></div>
 							</div>
 							{literal}
-								<script>						
+								<script>
 										$('.email').nospam({ replaceText: true });
 								</script>
-							{/literal}			
-						{/if}				
+							{/literal}
+						{/if}
 
-                        {if $cfg.sw_comm}
-						<div class="field">
-							<div class="title">{$LANG.COMMENTS}:</div>
-							<div class="value">{$usr.comments_count}
-                                {if $usr.comments_count}<a href="/users/{$usr.id}/comments.html" title="{$LANG.READ}">&rarr;</a>{/if}
-                            </div>
-						</div>
-                        {/if}
-
-                        {if $cfg.sw_forum}
-						<div class="field">
-							<div class="title">{$LANG.MESS_IN_FORUM}:</div>
-							<div class="value">{$usr.forum_count}
-                                {if $usr.forum_count}<a href="/users/{$usr.id}/forumposts.html" title="{$LANG.READ}">&rarr;</a>{/if}
-                            </div>
-						</div>
-                        {/if}
-						
 						<div class="field">
 							<div class="title">{$LANG.HOBBY} ({$LANG.TAGSS}):</div>
-							<div class="value">{$usr.description}</div>
-						</div>					
-					</div>
-					
-					<div>
-						{if $cfg.privforms}
-							{$usr.privforms}
-						{/if}												
+							<div class="value">{if $usr.fdescription}{$usr.fdescription}{else}<span style="color:#999"><em>{$LANG.TAGS_NOT_SPEC}</em></span>{/if}</div>
+						</div>
 
+						{if $cfg.privforms && $usr.form_fields}
+							{foreach key=tid item=field from=$usr.form_fields}
+                                <div class="field">
+                                    <div class="title">{$field.title}:</div>
+                                    <div class="value">{if $field.field}{$field.field}{else}<em>{$LANG.NOT_SET}</em>{/if}</div>
+                                </div>
+                            {/foreach}
+						{/if}
+
+					</div>
+
+					<div>
                         <div class="usr_profile_block">
                             <div class="usr_wall_header">
                                 {if !$myprofile}
@@ -299,10 +285,10 @@
                             </div>
                             <div id="usr_links">
                                 {if $cfg.sw_blogs}
-                                    {if $usr.blog_link}
-                                        <div id="usr_blog">
-                                            {$usr.blog_link}
-                                        </div>
+                                    {if $usr.blog}
+                                        <div id="usr_blog"><a href="/blogs/{$usr.blog.seolink}" title="{$usr.blog.title|escape:'html'}">{$LANG.BLOG}</a></div>
+                                    {elseif $myprofile}
+                                        <div id="usr_blog"><a href="/blogs/createblog.html">{$LANG.CREATE_BLOG}</a></div>
                                     {/if}
                                 {/if}
                                 {if $cfg.sw_files}
@@ -310,9 +296,19 @@
                                         <a href="/users/{$usr.id}/files.html">{$LANG.FILES}</a> <sup>{$usr.files_count}</sup>
                                     </div>
                                 {/if}
-                                {if $cfg.sw_board}
+                                {if $cfg.sw_board && $usr.board_count}
                                     <div id="usr_board">
-                                        <a href="/users/{$usr.id}/board.html">{$LANG.ADVS}</a> <sup>{$usr.board_count}</sup>
+                                        <a href="/board/by_user_{$usr.login}">{$LANG.ADVS}</a> <sup>{$usr.board_count}</sup>
+                                    </div>
+                                {/if}
+                                {if $cfg.sw_forum && $cfg_forum.component_enabled && $usr.forum_count}
+                                    <div id="usr_forum">
+                                        <a href="/forum/{$usr.login}_activity.html" title="{$LANG.MY_ACTIVITY_ON_FORUM}">{$LANG.FORUM}</a> <sup title="{$LANG.MESS_IN_FORUM}">{$usr.forum_count}</sup>
+                                    </div>
+                                {/if}
+                                {if $cfg.sw_comm && $usr.comments_count}
+                                    <div id="usr_comments">
+                                        <a href="/comments/by_user_{$usr.login}" title="{$LANG.READ}">{$LANG.COMMENTS}</a> <sup>{$usr.comments_count}</sup>
                                     </div>
                                 {/if}
                             </div>
@@ -336,8 +332,8 @@
                                     {foreach key=key item=album from=$usr.albums}
                                         <li>
                                             <div class="usr_album_thumb">
-                                                <a href="/users/{$usr.login}/photos/{$album.type}{$album.id}.html" title="{$album.title}">
-                                                    <img src="{$album.imageurl}" width="64" height="64" border="0" alt="{$album.title}" />
+                                                <a href="/users/{$usr.login}/photos/{$album.type}{$album.id}.html" title="{$album.title|escape:'html'}">
+                                                    <img src="{$album.imageurl}" width="64" height="64" border="0" alt="{$album.title|escape:'html'}" />
                                                 </a>
                                             </div>
                                             <div class="usr_album">
@@ -353,7 +349,7 @@
                             </div>
                         {/if}
 
-                        {if $usr.friends_total}
+                        {if $usr.friends}
                             <div class="usr_friends_block usr_profile_block">
                                 {if $usr.friends_total > 6}
                                     <div class="float_bar">
@@ -374,14 +370,14 @@
                                             <td align="center" valign="top">
                                                 <div class="usr_friend_cell">
                                                     <div align="center"><a class="friend_link" href="{profile_url login=$friend.login}">{$friend.nickname}</a></div>
-                                                    <div align="center"><a href="{profile_url login=$friend.login}">{$friend.avatar}</a></div>
+                                                    <div align="center"><a href="{profile_url login=$friend.login}"><img border="0" class="usr_img_small" src="{$friend.avatar}" /></a></div>
                                                     <div align="center">{$friend.flogdate}</div>
                                                 </div>
                                             </td>
-                                              
+
                                       {if $col==6} </tr> {assign var="col" value="1"} {else} {math equation="x + 1" x=$col assign="col"} {/if}
                                   {/foreach}
-                                  {if $col>1}<td colspan="{math equation="x - y + 1" x=$col y=$maxcols}">&nbsp;</td></tr>{/if}
+                                  {if $col>1}<td colspan="{math equation="x - 6 + 1" x=$col}">&nbsp;</td></tr>{/if}
                                 </table>
                             </div>
                         {/if}
@@ -391,12 +387,11 @@
 								<div class="usr_wall_header">
                                     {$LANG.USER_WALL}
                                     <div class="usr_wall_addlink" style="float:right">
-                                        <a href="#addwall" id="addlink" onclick="{literal}$('div#addwall').slideToggle();$('.usr_wall_addlink').toggle();$('.wall_message').focus();{/literal}">
+                                        <a href="javascript:void(0)" id="addlink" class="ajaxlink" onclick="addWall('users', '{$usr.id}');return false;">
                                             <span>{$LANG.WRITE_ON_WALL}</span>
                                         </a>
                                     </div>
                                 </div>
-								<div id="addwall" style="display:none">{$usr.addwall_html}</div>
 								<div class="usr_wall_body" style="clear:both">
                                     <div class="wall_body">{$usr.wall_html}</div>
                                 </div>
@@ -404,40 +399,14 @@
 						{/if}
 					</div>
 				</div>
-				
-				{* ============================== «¿ À¿ƒ ¿ π2 ============================================== *}
+
+				{* ============================== –ó–ê–ö–õ–ê–î–ö–ê ‚Ññ2 ============================================== *}
 				{if $myprofile && $cfg.sw_feed}
 					<div id="upr_feed">
-                       {if $usr.actions}
-                            <div class="actions_list">
-                                {foreach key=aid item=action from=$usr.actions}
-                                    <div class="action_entry act_{$action.name}">
-                                        <div class="action_date{if $action.is_new} is_new{/if}">{$action.pubdate} {$LANG.BACK}</div>
-                                        <div class="action_title">
-                                            <a href="{$action.user_url}" class="action_user">{$action.user_nickname}</a>
-                                            {if $action.message}
-                                                {$action.message}{if $action.description}:{/if}
-                                            {else}
-                                                {if $action.description}
-                                                    &rarr; {$action.description}
-                                                {/if}
-                                            {/if}
-                                        </div>
-                                        {if $action.message}
-                                            {if $action.description}
-                                                <div class="action_details">{$action.description}</div>
-                                            {/if}
-                                        {/if}
-                                    </div>
-                                {/foreach}
-                            </div>
-                       {else}
-                            <p>{$LANG.FEED_DESC}</p>
-                            <p>{$LANG.FEED_EMPTY_TEXT}</p>
-                       {/if}
-					</div>	
-				{/if}
 
+					</div>
+				{/if}
+				
                 {* ============================== ULOGIN SYNC ============================================== *}
                 {if $myprofile}
                     <div id="upr_ulogin">
@@ -447,53 +416,45 @@
                     </div>
                 {/if}
 
-				{* ============================== «¿ À¿ƒ ¿ π5 ============================================== *}
+				{* ============================== –ó–ê–ö–õ–ê–î–ö–ê ‚Ññ5 ============================================== *}
 				{if $cfg.sw_clubs}
 					<div id="upr_clubs">
-						{if $usr.clubs}
-							{if sizeof($usr.clubs.member)}
-								<div class="usr_clubs">
-									<span class="label">{$LANG.CONSIST}:</span>
-									{foreach key=tid item=club from=$usr.clubs.member}
-										<a class="usr_club_link" href="/clubs/{$club.id}">{$club.title}</a>
-									{/foreach}
-								</div>
-							{/if}
-							{if sizeof($usr.clubs.moder)}
-								<div class="usr_clubs">
-									<span class="label">{$LANG.MODERATE}:</span>
-									{foreach key=tid item=club from=$usr.clubs.moder}
-										<a class="usr_club_link" href="/clubs/{$club.id}">{$club.title}</a>
-									{/foreach}
-								</div>
-							{/if}
-							{if sizeof($usr.clubs.admin)}
-								<div class="usr_clubs">
-									<span class="label">{$LANG.ADMINING}:</span>
-									{foreach key=tid item=club from=$usr.clubs.admin}
-										<a class="usr_club_link" href="/clubs/{$club.id}">{$club.title}</a>
-									{/foreach}
-								</div>
-							{/if}													
-						{else}
-                            {if !$myprofile}
-                                <p><strong>{$usr.nickname}</strong> {$LANG.USET_NOT_IN_CLUBS}</p>
-                            {else}
-                                <p>{$LANG.YOU_NOT_IN_CLUBS}</p>
-                            {/if}
-						{/if}
+
 					</div>
 				{/if}
-				
-				{* ============================== «¿ À¿ƒ ¿ π6 ============================================== *}
+
+				{* ============================== –ó–ê–ö–õ–ê–î–ö–ê ‚Ññ6 ============================================== *}
 
                 {if $cfg.sw_awards}
 					<div id="upr_awards">
 						<div class="awards_list_link">
 							<a href="/users/awardslist.html">{$LANG.HOW_GET_AWARD}</a>
 						</div>
-						{if sizeof($usr.awards_html)}
-							{$usr.awards_html}
+						{if $usr.awards}
+                            {foreach key=tid item=aw from=$usr.awards}
+                                <div class="usr_award_block">
+                                  <table style="width:100%; margin-bottom:2px;" cellspacing="2">
+                                    <tr>
+                                      <td class="usr_com_title"><strong>{$aw.title}</strong>
+                                      {if $is_admin}
+                                        [<a href="/users/delaward{$aw.id}.html">{$LANG.DELETE}</a>]
+                                      {/if}
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td class="usr_com_body">
+                                        <table border="0" cellpadding="5" cellspacing="0">
+                                          <tr>
+                                            <td valign="top"><img src="/images/users/awards/{$aw.imageurl}" border="0" alt="{$aw.title|escape:'html'}"/></td>
+                                            <td valign="top">{$aw.description}
+                                              <div class="usr_award_date">{$aw.pubdate}</div></td>
+                                          </tr>
+                                        </table>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </div>
+                            {/foreach}
 						{/if}
 					</div>
                 {/if}
@@ -502,7 +463,7 @@
                     <div id="upr_{$plugin.name}">{$plugin.html}</div>
                 {/foreach}
 
-			</div>						
+			</div>
 	</td>
   </tr>
 </table>

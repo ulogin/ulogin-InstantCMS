@@ -1,9 +1,7 @@
 === uLogin - виджет авторизации через социальные сети ===
 Donate link: http://ulogin.ru/
 Tags: ulogin, login, social, authorization
-Requires at least: 1.7
-Tested up to: 1.9
-Stable tag: 1.7
+Tested up to: 1.10
 License: GPL V3
 
 Форма авторизации uLogin через социальные сети. Улучшенный аналог loginza.
@@ -15,64 +13,10 @@ uLogin — это инструмент, который позволяет пол
 
 == Installation ==
 
-Для версий 1.7-1.9:
-
 1. Скопировать в корень сайта с заменой существующих файлов
-2. Активировать плагин в админке
-
-Для более ранних версий:
-1. Папку plugins нужно скопировать в корень сайта.
-2. В файле templates/_default_/template.php в <head> добавить код: <script src="http://ulogin.ru/js/ulogin.js"></script>
-3. В файле templates/_default_/components/com_registration.tpl добавить код:
-<td rowspan="9" valign="top">
-<div class="lf_title">Регистрация через социальный сети</div>
-<p style="margin:15px 0">
-Если у Вас есть регистрация в других социальных сетях или аккаунт OpenID, то Вы можете войти на сайт без регистрации.
-</p>
-{php}cmsCore::callEvent('ULOGIN_BUTTON', array());{/php}
-</td>
-
-после кода:
-<div id="logincheck"></div>
-</td>
-
-4. В файле templates/_default_/modules/mod_auth.tpl добавить код в самом верху: <div style="text-align: right; margin: 0 -7px 5px 0;">{php}cmsCore::callEvent('ULOGIN_BUTTON', array('id'=>'sideuLogin'));{/php}</div>
-
-5. В файле templates/_default_/template.php добавить код:
-	<?php cmsCore::callEvent('ULOGIN_BUTTON_SMALL', array()); ?>
-после:
-	<a href="javascript:window.external.AddFavorite('http://<?php echo $_SERVER['HTTP_HOST']?>/', '<?php cmsPrintSitename(); ?>')" id="ht_fav">В избранное</a>
-
-6. В файле templates/_default_/components/com_users_profile.tpl добавить:
-
-    {if $myprofile}
-      <li><a href="#upr_ulogin"><span>uLogin</span></a></li>
-    {/if}
-
-  после кода:
-
-    {if $myprofile && $cfg.sw_feed}
-      <li><a href="#upr_feed"><span>{$LANG.FEED}</span></a></li>
-    {/if}
-
-  а так же добавить:
-
-    {* ============================== ULOGIN SYNC ============================================== *}
-      {if $myprofile}
-	<div id="upr_ulogin">
-	  <div class="user_profile_data">
-	    {php}cmsCore::callEvent('ULOGIN_SYNC_PANEL', array());{/php}
-	  </div>
-	</div>
-      {/if}
-  
-  после кода:
-
-  {* ============================== ЗАКЛАДКА №5 ============================================== *}
-    {if $cfg.sw_clubs}
-
-7. активировать плагин в админке
-
+2. Установить и активировать плагин в админке
+3. Очистить кэш (настройки -> очистка системного кэша)
+ 
 Связывание профилей:
 
 После успешной установки закладка uLogin должна отобразиться на странице профиля пользователя.
@@ -87,10 +31,5 @@ uLogin — это инструмент, который позволяет пол
 Если параметр отключен, то виджет перестанет отправлять код верификации, но плагин продолжит проверять верифицирован ли email и при положительном результате привязывать.
 
 == Changelog ==
- - Корректное добавление пользователей с тире в псеводниме;
- - Генерация уникального никнейма для пользователей;
- - Связывание/отвязывание профилей соц. сетей;
- - Параметр для включения верификации email для пользователей соц. сетей;
- - Автоматическое связывание профилей при успешной верификации email;
- - Привязанные профили uLogin не имеют профилей на сайте, только основной профиль uLogin имеет профиль в InstantCms;
- - Использование curl(в приоритете) или file_get_contents при обмене токена на данные пользователя от uLogin.
+ - исправлено под версию 1.10
+ - изменён процесс синхронизации аккаунтов при авторизации

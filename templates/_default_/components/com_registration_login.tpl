@@ -1,5 +1,5 @@
 {* ================================================================================ *}
-{* ============================ Форма авторизации ================================= *}
+{* ============================ Р¤РѕСЂРјР° Р°РІС‚РѕСЂРёР·Р°С†РёРё ================================= *}
 {* ================================================================================ *}
 
 <h1 class="con_heading">{$LANG.SITE_LOGIN}</h1>
@@ -14,7 +14,7 @@
             <form method="post" action="">
                 <div class="lf_title">{$LANG.LOGIN} {$LANG.OR} {$LANG.EMAIL}</div>
                 <div class="lf_field">
-                    <input type="text" name="login" id="login_field" tabindex="1" /> <a href="/registration" class="lf_link">{$LANG.REGISTRATION}</a>
+                    <input type="text" name="login" id="login_field" tabindex="1"/> <a href="/registration" class="lf_link">{$LANG.REGISTRATION}</a>
                 </div>
                 <div class="lf_title">{$LANG.PASS}</div>
                 <div class="lf_field">
@@ -22,29 +22,33 @@
                 </div>
                 <table border="0" cellpadding="0" cellspacing="0" width="100%">
                     <tr>
-                        <td width="20"><input type="checkbox" name="remember" value="1" id="remember" /></td>
+                        <td width="20"><input type="checkbox" name="remember" value="1" checked="checked" id="remember" tabindex="3" /></td>
                         <td>
                             <label for="remember">{$LANG.REMEMBER_ME}</label>
                         </td>
                     </tr>
                 </table>
-                
                 <p class="lf_submit">
-                    <input type="submit" name="login_btn" value="{$LANG.SITE_LOGIN_SUBMIT}" />
+                    <input type="submit" name="login_btn" value="{$LANG.SITE_LOGIN_SUBMIT}" tabindex="4" />
                 </p>
             </form>
         </td>
-        <td valign="top">
+		  <td valign="top">
 
-            <div class="lf_title">Вход через социальный сети</div>
+            <div class="lf_title">Р’С…РѕРґ С‡РµСЂРµР· СЃРѕС†РёР°Р»СЊРЅС‹Р№ СЃРµС‚Рё</div>
 
             <p style="margin:15px 0">
-                Если у Вас есть регистрация в других социальных сетях или аккаунт OpenID, то Вы можете войти на сайт без регистрации.
+                Р•СЃР»Рё Сѓ Р’Р°СЃ РµСЃС‚СЊ СЂРµРіРёСЃС‚СЂР°С†РёСЏ РІ РґСЂСѓРіРёС… СЃРѕС†РёР°Р»СЊРЅС‹С… СЃРµС‚СЏС… РёР»Рё Р°РєРєР°СѓРЅС‚ OpenID, С‚Рѕ Р’С‹ РјРѕР¶РµС‚Рµ РІРѕР№С‚Рё РЅР° СЃР°Р№С‚ Р±РµР· СЂРµРіРёСЃС‚СЂР°С†РёРё.
             </p>
 
             {php}cmsCore::callEvent('ULOGIN_BUTTON', array());{/php}
             
             <p style="height: 150px;"></p>
+
+        </td>
+        <td valign="top">
+
+            {php}cmsCore::callEvent('LOGINZA_BUTTON', array());{/php}
 
         </td>
     </tr>

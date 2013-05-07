@@ -24,7 +24,6 @@
                         </td>
                     </tr>
                     </table>
-
                 </td>
             </tr>
         {/if}
