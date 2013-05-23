@@ -158,6 +158,7 @@ class p_ulogin extends cmsPlugin
         $token = $inCore->request('token', 'str', '');
 
         if (!$token) {
+            $inCore->redirect('/');
             exit;
         }
 
@@ -186,15 +187,11 @@ class p_ulogin extends cmsPlugin
             $profile = array('error'=>'curl or fopen wrapper is required');
 
         }
+ 
 
-
-
-        foreach ($profile as $key => $el)
-        {
-            $profile[$key] = iconv('UTF-8', 'Windows-1251', $el);
-        }
-
+ 
         if (empty($profile) || isset($profile['error'])) {
+			$inCore->redirect('/');
             exit;
         }
 
@@ -506,6 +503,7 @@ class p_ulogin extends cmsPlugin
         $token = $inCore->request('token', 'str', '');
 
         if (!$token) {
+            $inCore->redirect('/');
             exit;
         }
 
@@ -516,13 +514,9 @@ class p_ulogin extends cmsPlugin
         $json_string = file_get_contents($ulogin_token_url);
         $profile = json_decode($json_string, true);
 
-        foreach ($profile as $key => $el)
-        {
-            $profile[$key] = iconv('UTF-8', 'Windows-1251', $el);
-        }
-
+      
         if (empty($profile) || isset($profile['error'])) {
-
+			$inCore->redirect('/');
             exit;
         }
 
