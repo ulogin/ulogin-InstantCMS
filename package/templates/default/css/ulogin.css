@@ -1,0 +1,17 @@
+.ulogin_provider {
+    margin-right: 10px;
+    display: inline-block;
+}
+.can_delete .ulogin_provider {
+    cursor: pointer;
+}
+
+.ulogin_form .hint {
+    color: #999;
+    font-size: 12px;
+}
+
+.ulogin_form {
+    display: inline-block;
+    line-height: 1em;
+}
