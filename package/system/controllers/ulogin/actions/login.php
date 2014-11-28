@@ -74,10 +74,13 @@ class actionUloginLogin extends cmsAction {
 
 		try {
 			$u_user_db = $this->model->getUloginUserItem(array('identity' => $this->u_data['identity']));
+			$user_id = 0;
 
 			if ( $u_user_db ) {
 
-				$user_id = $this->model->getUserIdByUloginData(array('id' => $u_user_db['user_id']));
+				if ($this->model->checkUloginUserId($u_user_db['user_id'])) {
+					$user_id = $u_user_db;
+				}
 
 				if ( isset( $user_id ) && intval( $user_id ) > 0 ) {
 					if ( !$this->checkCurrentUserId( $user_id ) ) {

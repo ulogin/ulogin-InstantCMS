@@ -2,19 +2,13 @@
 
 class modelUlogin extends cmsModel {
 
-	public function getUserIdByUloginData ($fields = array()) {
-		if (is_array($fields) && !empty($fields)) {
+	public function checkUloginUserId ($u_id) {
+		$users_model = cmsCore::getModel('users');
+		$users_model->filterEqual('id', $u_id);
+		$ids = $users_model->getUsersIds();
 
-			$this->resetFilters();
-			$this->joinLeft('ulogin_user', 'ulogin', "ulogin.user_id = i.id");
-
-			foreach ($fields as $field => $value) {
-				$this->filterEqual($field, $value);
-			}
-			return $this->getFieldFiltered('{users}', 'id');
-		}
-
-		return false;
+		if (!$ids) { return false; }
+		else { return true; }
 	}
 
 
