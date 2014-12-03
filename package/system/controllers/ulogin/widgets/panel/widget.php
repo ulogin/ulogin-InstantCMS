@@ -14,7 +14,8 @@ class widgetUloginPanel extends cmsWidget {
 
 	    if (empty($uloginid)) {
 		    $ulogin = cmsCore::getController('ulogin');
-		    $uloginid = $ulogin->getOptions()['uloginid'];
+		    $uloginid = $ulogin->getOptions();
+            $uloginid = $uloginid['uloginid'];
 	    }
 
 	    if (empty($uloginid)) {

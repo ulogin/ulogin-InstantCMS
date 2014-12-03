@@ -223,7 +223,8 @@ class actionUloginLogin extends cmsAction {
 			'phone' => isset($u_data['phone']) ? $u_data['phone'] : '',
 		);
 
-		$ulogin_group_id = $this->getOptions()['group_id'];
+		$ulogin_group_id = $this->getOptions();
+        $ulogin_group_id = $ulogin_group_id['group_id'];
 
 		$ulogin_group_id = $ulogin_group_id > 0 ? $ulogin_group_id : $this->model->getUloginGroupId();
 

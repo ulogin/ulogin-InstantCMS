@@ -31,7 +31,8 @@ class widgetUloginNetworks extends cmsWidget {
 		    $uloginid = $this->getOption('uloginid');
 
 		    if (empty($uloginid)) {
-			    $uloginid = cmsController::loadOptions( 'ulogin' )['uloginid'];
+			    $uloginid = cmsController::loadOptions('ulogin');
+                $uloginid = $uloginid['uloginid'];
 		    }
 
 		    if (empty($uloginid)) {
