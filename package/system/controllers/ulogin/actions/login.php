@@ -32,7 +32,7 @@ class actionUloginLogin extends cmsAction {
 
 	/**
 	 * Отправляет данные как ответ на ajax запрос, если код выполняется в результате вызова callback функции,
-	 * либо заносит данные в переменную _messParam для вывода в режиме redirect
+	 * либо добавляет сообщение в сессию для вывода в режиме redirect
 	 * @param array $params
 	 */
 	protected function sendMessage ($params = array()) {

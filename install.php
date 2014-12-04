@@ -21,6 +21,14 @@ function install_package () {
 				'is_backend' => 1,
 			)
 		);
+	} else {
+		$db->update(
+			'controllers',
+			$controllers,
+			array(
+				'version' => '2.0.1',
+			)
+		);
 	}
 
 

@@ -56,12 +56,11 @@ class modelUlogin extends cmsModel {
 	public function getUloginUserNetworks ($user_id = 0) {
 		$this->resetFilters();
 		$this->filterEqual('user_id', $user_id);
-		return $this->get('ulogin_user', array($this, 'itemCallbackNetwork'), false);
-	}
-
-
-	public function itemCallbackNetwork ($item, $obj = false) {
-		return $item['network'];
+		$q = $this->get('ulogin_user');
+		foreach ($q as $q0) {
+			$result[] = $q0['network'];
+		}
+		return $result;
 	}
 
 
