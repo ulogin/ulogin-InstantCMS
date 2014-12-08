@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<backend>
+    <info>
+        <type>module</type>
+        <id>mod_ulogin_networks</id>
+    </info>
+    <params>
+        <param type="string" name="uloginid" title="Значение поля uLogin ID" default="" hint="Заполните это поле, если хотите, чтобы значение было отличным от заданного в опциях компонента uLogin"/>
+        <param type="string" name="add_str" title="Текст для добавления аккаунта" default="Привяжите аккаунты соцсетей:" />
+        <param type="string" name="delete_str" title="Текст для удаления аккаунта" default="Удалите привязку к аккаунту, кликнув по значку:" />
+        <param type="string" name="tpl" default="mod_ulogin_networks.tpl" />
+    </params>
+</backend>

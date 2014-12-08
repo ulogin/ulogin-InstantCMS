@@ -1,0 +1,26 @@
+.ulogin_provider {
+    margin-right: 10px;
+    display: inline-block;
+}
+.can_delete .ulogin_provider {
+    cursor: pointer;
+}
+
+.ulogin_form {
+    display: inline-block;
+    line-height: 1em;
+}
+
+.ulogin_accounts {
+    font-size: 1px;
+}
+
+.ulogin_messages_module {
+    display: none;
+}
+
+.ulogin_form .add_str,
+.ulogin_form .delete_str {
+    color: gray;
+    padding: 10px 0;
+}

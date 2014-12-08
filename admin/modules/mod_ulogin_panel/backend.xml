@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<backend>
+    <info>
+        <type>module</type>
+        <id>mod_ulogin_panel</id>
+    </info>
+    <params>
+        <param type="string" name="uloginid" title="Значение поля uLogin ID" default="" hint="Заполните это поле, если хотите, чтобы значение было отличным от заданного в опциях компонента uLogin"/>
+        <param type="string" name="tpl" default="mod_ulogin_panel.tpl" />
+    </params>
+</backend>
