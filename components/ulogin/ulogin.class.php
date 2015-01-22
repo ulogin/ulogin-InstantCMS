@@ -77,12 +77,12 @@ class uloginClass {
 						return;
 					}
 				} else {
-					// данные о пользователе есть в ulogin_table, но отсутствуют в modx. Необходимо переписать запись в ulogin_table и в базе modx.
+					// данные о пользователе есть в ulogin_table, но отсутствуют в users. Необходимо переписать запись в ulogin_table и в базе users.
 					$user_id = $this->newUloginAccount( $u_user_db );
 				}
 
 			} else {
-				// пользователь НЕ обнаружен в ulogin_table. Необходимо добавить запись в ulogin_table и в базе modx.
+				// пользователь НЕ обнаружен в ulogin_table. Необходимо добавить запись в ulogin_table и в базе users.
 				$user_id = $this->newUloginAccount();
 			}
 
@@ -121,7 +121,7 @@ class uloginClass {
 		$u_data = $this->u_data;
 
 		if ($u_user_db) {
-			// данные о пользователе есть в ulogin_user, но отсутствуют в modx => удалить их
+			// данные о пользователе есть в ulogin_user, но отсутствуют в users => удалить их
 			$this->model->deleteUloginUser($u_user_db['id']);
 		}
 
@@ -191,7 +191,7 @@ class uloginClass {
 
 
 	/**
-	 * Регистрация пользователя в БД modx
+	 * Регистрация пользователя в БД users
 	 * @return mixed
 	 */
 	protected function regUser(){
@@ -289,7 +289,7 @@ class uloginClass {
 
 		$CMSuser = cmsCore::callEvent('USER_BEFORE_REGISTER', $CMSuser);
 
-		$CMSuser['id'] = $this->model->isertUserData($CMSuser);
+		$CMSuser['id'] = $this->model->insertUserData($CMSuser);
 		if(!$CMSuser['id']){
 			$this->sendMessage (array(
 				'title' => "Ошибка при регистрации.",
@@ -548,7 +548,7 @@ class uloginClass {
 		$inUser = cmsUser::getInstance();
 		$this->inUser = $inUser;
 		$this->currentUserId = $inUser->id;
-		$this->isUserLogined = $inUser->id > 0 ? true : false;//$inUser->isOnline($inUser->id);
+		$this->isUserLogined = $inUser->id > 0 ? true : false;
 
 		return $this->u_data;
 	}

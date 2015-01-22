@@ -2,8 +2,6 @@
 
     function routes_ulogin(){
 
-//	    echo 'ulogin-------------1'; exit;
-
 	    $routes[] = array(
 		    '_uri'  => '/^ulogin\/index$/i',
 		    'do' => 'index',

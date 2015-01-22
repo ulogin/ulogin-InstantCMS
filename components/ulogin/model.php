@@ -179,7 +179,7 @@ class cms_model_ulogin {
 	 * @param $user
 	 * @return bool|int
 	 */
-	public function isertUserData ($user) {
+	public function insertUserData ($user) {
 		$result = $this->inDB->insert('cms_users', $user);
 		if (!$result) { return false; }
 
