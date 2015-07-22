@@ -167,7 +167,7 @@ class actionUloginLogin extends cmsAction {
 					array(
 						'title' => 'Подтверждение аккаунта.',
 						'msg' => 'Электронный адрес данного аккаунта совпадает с электронным адресом существующего пользователя. ' .
-						         '<br>Требуется подтверждение на владение указанным email.',
+							'<br>Требуется подтверждение на владение указанным email.',
 						'script' => '<script type="text/javascript">uLogin.mergeAccounts("' . $this->request->get('token') . '")</script>',
 						'answerType' => 'verify',
 					)
@@ -188,7 +188,7 @@ class actionUloginLogin extends cmsAction {
 						array(
 							'title' => 'Синхронизация аккаунтов.',
 							'msg' => 'С данным аккаунтом уже связаны данные из другой социальной сети. ' .
-							         '<br>Требуется привязка новой учётной записи социальной сети к этому аккаунту.',
+								'<br>Требуется привязка новой учётной записи социальной сети к этому аккаунту.',
 							'script' => '<script type="text/javascript">uLogin.mergeAccounts("' . $this->request->get('token') . '","' . $other_u['identity'] . '")</script>',
 							'answerType' => 'merge',
 							'existIdentity' => $other_u['identity']
@@ -224,7 +224,7 @@ class actionUloginLogin extends cmsAction {
 		);
 
 		$ulogin_group_id = $this->getOptions();
-        $ulogin_group_id = $ulogin_group_id['group_id'];
+		$ulogin_group_id = $ulogin_group_id['group_id'];
 
 		$ulogin_group_id = $ulogin_group_id > 0 ? $ulogin_group_id : $this->model->getUloginGroupId();
 
@@ -311,16 +311,16 @@ class actionUloginLogin extends cmsAction {
 
 		if (empty($CMSuser['id'])) { return false; }
 
+//		$this->getAvatar($CMSuser);
 		// обновление данных
 		if (
 			empty($CMSuser['avatar'])
-		    || empty($CMSuser['birth_date'])
-		    || empty($CMSuser['site'])
-		    || empty($CMSuser['phone'])
-		    || empty($CMSuser['city'])
+			|| empty($CMSuser['birth_date'])
+			|| empty($CMSuser['site'])
+			|| empty($CMSuser['phone'])
+			|| empty($CMSuser['city'])
 		) {
 			$users = cmsCore::getModel( 'users' );
-
 			$CMSuser['avatar'] = empty( $CMSuser['avatar'] ) && isset( $u_data['photo_big'] ) ?  $this->getAvatar($CMSuser) : $CMSuser['avatar'];
 
 			$CMSuser['site'] = empty( $CMSuser['site'] ) && isset( $u_data['profile'] ) ? $u_data['profile'] : $CMSuser['site'];
@@ -415,7 +415,7 @@ class actionUloginLogin extends cmsAction {
 			? $u_data['photo_big']
 			: ( !empty( $u_data['photo'] )  ? $u_data['photo'] : '' );
 
-		$q = isset( $file_url ) ? true : false;
+		$q = !empty( $file_url ) ? true : false;
 
 		if ($q) {
 
@@ -467,27 +467,44 @@ class actionUloginLogin extends cmsAction {
 
 		$result['paths']['original'] = $dest_dir0 . '/' . $dest_file;
 
+		//достаем размеры изображений из настроек "загрузка изображений" (если он установлен) и индексируем их по именам
+		if(cmsCore::isModelExists('images')){
+			$images_model = cmsCore::getModel('images');
+			$presets_tmp = $images_model->getPresets();
+			$presets = array();
+			foreach ($presets_tmp as $tmp) {
+				$presets[$tmp['name']] = $tmp;
+			}
+		} else {
+			$presets = array(
+				'micro' 	=> array('width' => 32, 'height' => 32),
+				'small' 	=> array('width' => 64, 'height' => 64),
+				'normal' 	=> array('width' => 256, 'height' => 256),
+				'big' 		=> array('width' => 640, 'height' => 480),
+			);
+		}
+
 		$dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
 		$path2 = $dest_dir . '/' . $dest_file;
-		if ($uploader->imageCopyResized($path, $path2, 640, 480, false)) {
+		if ($uploader->imageCopyResized($path, $path2, $presets['big']['width'], $presets['big']['height'], false)) {
 			$result['paths']['big'] = $dest_dir0 . '/' . $dest_file;
 		}
 
 		$dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
 		$path2 = $dest_dir . '/' . $dest_file;
-		if ($uploader->imageCopyResized($path, $path2, 256, 256, false)) {
+		if ($uploader->imageCopyResized($path, $path2, $presets['normal']['width'], $presets['normal']['height'], false)) {
 			$result['paths']['normal'] = $dest_dir0 . '/' . $dest_file;
 		}
 
 		$dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
 		$path2 = $dest_dir . '/' . $dest_file;
-		if ($uploader->imageCopyResized($path, $path2, 64, 64, true)) {
+		if ($uploader->imageCopyResized($path, $path2, $presets['small']['width'], $presets['small']['height'], true)) {
 			$result['paths']['small'] = $dest_dir0 . '/' . $dest_file;
 		}
 
 		$dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
 		$path2 = $dest_dir . '/' . $dest_file;
-		if ($uploader->imageCopyResized($path, $path2, 32, 32, true)) {
+		if ($uploader->imageCopyResized($path, $path2, $presets['micro']['width'], $presets['micro']['height'], true)) {
 			$result['paths']['micro'] = $dest_dir0 . '/' . $dest_file;
 		}
 
@@ -497,10 +514,10 @@ class actionUloginLogin extends cmsAction {
 	}
 
 
-
 	/**
 	 * Проверка текущего пользователя
 	 * @param $user_id
+	 * @return bool
 	 */
 	protected function checkCurrentUserId($user_id){
 		$currentUserId = $this->currentUserId;
@@ -512,7 +529,7 @@ class actionUloginLogin extends cmsAction {
 				array(
 					'title' => '',
 					'msg' => 'Данный аккаунт привязан к другому пользователю. ' .
-					         '</br>Вы не можете использовать этот аккаунт',
+						'</br>Вы не можете использовать этот аккаунт',
 					'answerType' => 'error',
 				)
 			);
