@@ -583,14 +583,22 @@ class actionUloginLogin extends cmsAction {
 	{
 		$response = false;
 		if ($token){
-			$request = 'http://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'];
+
+			$data = array(
+				'cms' => 'instantcms',
+				'version' => cmsCore::getVersion(),
+			);
+
+			$request = 'http://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'] .
+				'&data='.base64_encode(json_encode($data));
+
 			if(in_array('curl', get_loaded_extensions())){
 				$c = curl_init($request);
 				curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
 				$response = curl_exec($c);
 				curl_close($c);
 
-			}elseif (function_exists('file_get_contents') && ini_get('allow_url_fopen')){
+			} elseif (function_exists('file_get_contents') && ini_get('allow_url_fopen')){
 				$response = file_get_contents($request);
 			}
 		}
