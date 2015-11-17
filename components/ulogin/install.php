@@ -25,7 +25,7 @@ function info_component_ulogin(){
 	$ulogin_component['link']         = 'ulogin'; //ссылка на компонент
 	$ulogin_component['author']       = 'uLogin Team'; //Автор компонента
 	$ulogin_component['internal']     = '0';
-	$ulogin_component['version']      = '2.0.3'; //версия
+	$ulogin_component['version']      = '2.0.4'; //версия
 
 	$inCore = cmsCore::getInstance();
 	$inCore->loadModel('ulogin');
