@@ -21,7 +21,7 @@ function mod_ulogin_panel($module_id, $cfg){
 		unset($_SESSION['ulogin_script']);
 	}
 
-	require_once('/components/ulogin/ulogin.class.php');
+	require_once(PATH.'/components/ulogin/ulogin.class.php');
 
 	$inPage->addHeadJS( 'components/ulogin/js/ulogin.js' );
 	$inPage->addHeadCSS( '/ulogin.ru/css/providers.css' );

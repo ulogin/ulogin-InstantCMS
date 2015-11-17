@@ -21,7 +21,7 @@ function mod_ulogin_networks($module_id, $cfg){
 		unset($_SESSION['ulogin_script']);
 	}
 
-	require_once('/components/ulogin/ulogin.class.php');
+	require_once(PATH.'/components/ulogin/ulogin.class.php');
 
 	cmsCore::loadModel('ulogin');
 	$model = new cms_model_ulogin();
