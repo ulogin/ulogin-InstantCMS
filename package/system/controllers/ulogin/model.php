@@ -57,9 +57,14 @@ class modelUlogin extends cmsModel {
 		$this->resetFilters();
 		$this->filterEqual('user_id', $user_id);
 		$q = $this->get('ulogin_user');
-		foreach ($q as $q0) {
-			$result[] = $q0['network'];
-		}
+
+		$result = array();
+
+		if(is_array($q))
+			foreach ($q as $q0) {
+				$result[] = $q0['network'];
+			}
+
 		return $result;
 	}
 

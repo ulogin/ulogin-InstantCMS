@@ -1,24 +1,28 @@
 <?php
 
-class onUloginUsersProfileView extends cmsAction {
+if(!class_exists('onUloginUsersProfileView')) {
+	class onUloginUsersProfileView extends cmsAction
+	{
 
-	public function run($profile){
+		public function run($profile)
+		{
 
-		$user = cmsUser::getInstance();
+			$user = cmsUser::getInstance();
 
-		if (!$user->is_logged) {
-			ulogin::$is_profile = false;
+			if (!$user->is_logged) {
+				ulogin::$is_profile = false;
+				return $profile;
+			}
+
+			if ($user->id == $profile['id']) {
+				ulogin::$is_profile = true;
+			} else {
+				ulogin::$is_profile = false;
+			}
+
 			return $profile;
-		}
 
-		if ($user->id == $profile['id']) {
-			ulogin::$is_profile = true;
-		} else {
-			ulogin::$is_profile = false;
 		}
-
-		return $profile;
 
 	}
-
 }

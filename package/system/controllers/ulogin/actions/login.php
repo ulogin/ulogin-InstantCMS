@@ -214,17 +214,22 @@ class actionUloginLogin extends cmsAction {
 
 		$password = md5($u_data['identity'].time().rand());
 
+		$first_name = !empty($u_data['first_name']) ? $u_data['first_name'] : '';
+		$last_name = !empty($u_data['last_name']) ? $u_data['last_name'] : '';
+		$nickname = !empty($u_data['nickname']) ? $u_data['nickname'] : '';
+		$bdate = !empty($u_data['bdate']) ? $u_data['bdate'] : '';
+
 		$CMSuser = array(
 			'password1' => $password,
 			'password2' => $password,
-			'nickname' => $this->generateNickname($u_data['first_name'],$u_data['last_name'],$u_data['nickname'],$u_data['bdate']),
+			'nickname' => $this->generateNickname($first_name, $last_name, $nickname, $bdate),
 			'email' => $u_data['email'],
 			'site' => isset($u_data['profile']) ? $u_data['profile'] : '',
 			'phone' => isset($u_data['phone']) ? $u_data['phone'] : '',
 		);
 
 		$ulogin_group_id = $this->getOptions();
-		$ulogin_group_id = $ulogin_group_id['group_id'];
+		$ulogin_group_id = !empty($ulogin_group_id['group_id']) ? $ulogin_group_id['group_id'] : -1;
 
 		$ulogin_group_id = $ulogin_group_id > 0 ? $ulogin_group_id : $this->model->getUloginGroupId();
 
@@ -232,8 +237,8 @@ class actionUloginLogin extends cmsAction {
 			$CMSuser['group_id'] = $ulogin_group_id;
 		}
 
-		if (isset($u_data['bdate'])) {
-			$CMSuser['birth_date'] = date("Y-m-d H:i:s", strtotime($u_data['bdate']));
+		if ($bdate) {
+			$CMSuser['birth_date'] = date("Y-m-d H:i:s", strtotime($bdate));
 		}
 
 		$city_id = isset($u_data['city'])
