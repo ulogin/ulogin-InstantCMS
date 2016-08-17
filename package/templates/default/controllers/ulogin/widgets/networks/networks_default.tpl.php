@@ -10,7 +10,7 @@
 		<span class="add_str hint"><?php html($add_str);?></span>
 	<?php }?>
 
-	<div id="<?php html($id)?>" data-ulogin="display=panel;fields=first_name,last_name,email;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=<?php html($redirect);?>;callback=<?php html($callback);?>"></div>
+	<div id="<?php html($id)?>" data-ulogin="display=panel;fields=first_name,last_name,email,photo,photo_big;providers=vkontakte,odnoklassniki,mailru,facebook;hidden=other;redirect_uri=<?php html($redirect);?>;callback=<?php html($callback);?>"></div>
 
 	<?php if ($delete_str) { ?>
 		<span class="delete_str hint"><?php html($delete_str);?></span>
