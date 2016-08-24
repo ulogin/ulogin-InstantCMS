@@ -206,7 +206,7 @@ class actionUloginLogin extends cmsAction {
 
 
 	/**
-	 * Регистрация пользователя в БД modx
+	 * Регистрация пользователя в БД
 	 * @return mixed
 	 */
 	protected function regUser(){
