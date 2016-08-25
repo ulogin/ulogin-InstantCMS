@@ -31,7 +31,9 @@ class widgetUloginPanel extends cmsWidget {
 
 	    if (empty($uloginid)) {
 		    $this->setTemplate('panel_default');
-	    }
+	    } else {
+            $this->setTemplate('panel');
+        }
 
         return array(
 	        'id' => $u_id,

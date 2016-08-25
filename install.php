@@ -17,7 +17,7 @@ function install_package () {
 				'options' => '',
 				'author' => 'uLogin Team',
 				'url' => 'https://ulogin.ru',
-				'version' => '2.0.4',
+				'version' => '2.0.5',
 				'is_backend' => 1,
 			)
 		);
@@ -26,7 +26,7 @@ function install_package () {
 			'controllers',
 			$controllers,
 			array(
-				'version' => '2.0.4',
+				'version' => '2.0.5',
 			)
 		);
 	}
