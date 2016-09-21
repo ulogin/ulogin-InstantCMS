@@ -594,7 +594,7 @@ class actionUloginLogin extends cmsAction {
 				'version' => cmsCore::getVersion(),
 			);
 
-			$request = 'http://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'] .
+			$request = 'https://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'] .
 				'&data='.base64_encode(json_encode($data));
 
 			if(in_array('curl', get_loaded_extensions())){
