@@ -1,7 +1,7 @@
 <div class="ulogin_form">
 <?php
 	$this->addCSS( 'templates/default/css/ulogin.css' );
-	$this->addCSS( 'https://ulogin.ru/css/providers.css' );
+    $this->addCSS( 'https://ulogin.ru/css/providers.css', false);
 ?>
 
 	<?php

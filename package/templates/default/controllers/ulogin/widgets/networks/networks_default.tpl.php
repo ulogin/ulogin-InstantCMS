@@ -1,9 +1,10 @@
 <div class="ulogin_form">
 <?php
-	$this->addJS( 'https://ulogin.ru/js/ulogin.js' );
+	$this->addJS( 'https://ulogin.ru/js/ulogin.js', null, false);
+	$this->addCSS( 'https://ulogin.ru/css/providers.css', false);
+
 	$this->addJS( 'templates/default/js/ulogin.js' );
 	$this->addCSS( 'templates/default/css/ulogin.css' );
-	$this->addCSS( 'https://ulogin.ru/css/providers.css' );
 ?>
 
 	<?php if ($add_str) { ?>
