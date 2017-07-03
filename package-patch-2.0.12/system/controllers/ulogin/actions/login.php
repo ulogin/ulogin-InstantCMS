@@ -138,23 +138,6 @@ class actionUloginLogin extends cmsAction {
             $this->model->deleteUloginUser($u_user_db['id']);
         }
 
-        if(!(new auth($this->request))->isEmailAllowed($u_data['email'])){
-            $this->sendMessage (array(
-                'title' => "Ошибка при регистрации.",
-                'msg' => sprintf(LANG_AUTH_RESTRICTED_EMAIL, $u_data['email']),
-                'answerType' => 'error'
-            ));
-            return false;
-        }
-        if(!(new auth($this->request))->isIPAllowed(cmsUser::get('ip'))){
-            $this->sendMessage (array(
-                'title' => "Ошибка при регистрации.",
-                'msg' => sprintf(LANG_AUTH_RESTRICTED_IP, cmsUser::get('ip')),
-                'answerType' => 'error'
-            ));
-            return false;
-        }
-
         $CMSuser = $this->model->getUser(array(
             'email' => $u_data['email'],
         ));
@@ -487,9 +470,9 @@ class actionUloginLogin extends cmsAction {
         }
 
         $defaultPresets = array(
-            'normal' 	=> array('width' => 256, 'height' => 256),
-            'small' 	=> array('width' => 64, 'height' => 64),
             'micro' 	=> array('width' => 32, 'height' => 32),
+            'small' 	=> array('width' => 64, 'height' => 64),
+            'normal' 	=> array('width' => 256, 'height' => 256),
         );
         $availablePresets = array_keys($defaultPresets);
 
@@ -507,11 +490,8 @@ class actionUloginLogin extends cmsAction {
             $presets = $defaultPresets;
         }
 
-        uasort($presets, function ($a, $b) {
-            return $a['height'] > $b['height'] ? -1 : ($a['height'] < $b['height'] ? 1 : 0);
-        });
-
         $result['paths'] = array();
+
         foreach ($presets as $name => $data) {
             $dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
             $path2 = $dest_dir . '/' . $dest_file;
@@ -523,6 +503,7 @@ class actionUloginLogin extends cmsAction {
         $uploader->remove($path);
 
         unset($path);
+
         return $result['paths'];
     }
 
