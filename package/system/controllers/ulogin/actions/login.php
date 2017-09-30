@@ -17,10 +17,9 @@ class actionUloginLogin extends cmsAction {
             $this->_doRedirect = false;
         }
 
+        $msg = 'Вход успешно выполнен';
         if (cmsUser::isLogged()) {
             $msg = 'Аккаунт успешно добавлен';
-        } else {
-            $msg = 'Вход успешно выполнен';
         }
 
         $this->uloginLogin($title, $msg);
@@ -82,7 +81,7 @@ class actionUloginLogin extends cmsAction {
                     $user_id = $u_user_db['user_id'];
                 }
 
-                if ( isset( $user_id ) && intval( $user_id ) > 0 ) {
+                if ( isset( $user_id ) && (int)$user_id > 0 ) {
                     if ( !$this->checkCurrentUserId( $user_id ) ) {
                         // если $user_id != ID текущего пользователя
                         return;
@@ -115,8 +114,8 @@ class actionUloginLogin extends cmsAction {
 
         catch (Exception $e){
             $this->sendMessage (array(
-                'title' => "Ошибка при работе с БД.",
-                'msg' => "Exception: " . $e->getMessage(),
+                'title' => 'Ошибка при работе с БД.',
+                'msg' => 'Exception: ' . $e->getMessage(),
                 'answerType' => 'error'
             ));
             return;
@@ -140,7 +139,7 @@ class actionUloginLogin extends cmsAction {
 
         if(!(new auth($this->request))->isEmailAllowed($u_data['email'])){
             $this->sendMessage (array(
-                'title' => "Ошибка при регистрации.",
+                'title' => 'Ошибка при регистрации.',
                 'msg' => sprintf(LANG_AUTH_RESTRICTED_EMAIL, $u_data['email']),
                 'answerType' => 'error'
             ));
@@ -148,7 +147,7 @@ class actionUloginLogin extends cmsAction {
         }
         if(!(new auth($this->request))->isIPAllowed(cmsUser::get('ip'))){
             $this->sendMessage (array(
-                'title' => "Ошибка при регистрации.",
+                'title' => 'Ошибка при регистрации.',
                 'msg' => sprintf(LANG_AUTH_RESTRICTED_IP, cmsUser::get('ip')),
                 'answerType' => 'error'
             ));
@@ -177,7 +176,7 @@ class actionUloginLogin extends cmsAction {
             $this->addUloginAccount($user_id);
         } else {
             // существует пользователь с таким email или это текущий пользователь
-            if (intval($u_data["verified_email"]) != 1){
+            if ((int)$u_data['verified_email'] != 1){
                 // Верификация аккаунта
 
                 $this->sendMessage(
@@ -198,21 +197,19 @@ class actionUloginLogin extends cmsAction {
                 'user_id' => $user_id,
             ));
 
-            if ($other_u) {
-                // Синхронизация аккаунтов
-                if(!$isLoggedIn && !isset($u_data['merge_account'])){
-                    $this->sendMessage(
-                        array(
-                            'title' => 'Синхронизация аккаунтов.',
-                            'msg' => 'С данным аккаунтом уже связаны данные из другой социальной сети. ' .
-                                '<br>Требуется привязка новой учётной записи социальной сети к этому аккаунту.',
-                            'script' => '<script type="text/javascript">uLogin.mergeAccounts("' . $this->request->get('token') . '","' . $other_u['identity'] . '")</script>',
-                            'answerType' => 'merge',
-                            'existIdentity' => $other_u['identity']
-                        )
-                    );
-                    return false;
-                }
+            // Синхронизация аккаунтов
+            if ($other_u && !$isLoggedIn && !isset($u_data['merge_account'])) {
+                $this->sendMessage(
+                    array(
+                        'title' => 'Синхронизация аккаунтов.',
+                        'msg' => 'С данным аккаунтом уже связаны данные из другой социальной сети. ' .
+                            '<br>Требуется привязка новой учётной записи социальной сети к этому аккаунту.',
+                        'script' => '<script type="text/javascript">uLogin.mergeAccounts("' . $this->request->get('token') . '","' . $other_u['identity'] . '")</script>',
+                        'answerType' => 'merge',
+                        'existIdentity' => $other_u['identity']
+                    )
+                );
+                return false;
             }
 
             $this->addUloginAccount($user_id);
@@ -229,7 +226,7 @@ class actionUloginLogin extends cmsAction {
     protected function regUser(){
         $u_data = $this->u_data;
 
-        $password = md5($u_data['identity'].time().rand());
+        $password = md5($u_data['identity'].time().mt_rand());
 
         $first_name = !empty($u_data['first_name']) ? $u_data['first_name'] : '';
         $last_name = !empty($u_data['last_name']) ? $u_data['last_name'] : '';
@@ -255,7 +252,7 @@ class actionUloginLogin extends cmsAction {
         }
 
         if ($bdate) {
-            $CMSuser['birth_date'] = date("Y-m-d H:i:s", strtotime($bdate));
+            $CMSuser['birth_date'] = date('Y-m-d H:i:s', strtotime($bdate));
         }
 
         $city_id = isset($u_data['city'])
@@ -281,8 +278,8 @@ class actionUloginLogin extends cmsAction {
 
         } else {
             $this->sendMessage (array(
-                'title' => "Ошибка при регистрации.",
-                'msg' => "Произошла ошибка при регистрации пользователя.",
+                'title' => 'Ошибка при регистрации.',
+                'msg' => 'Произошла ошибка при регистрации пользователя.',
                 'answerType' => 'error'
             ));
             return false;
@@ -302,14 +299,14 @@ class actionUloginLogin extends cmsAction {
     protected function addUloginAccount($user_id){
         $user = $this->model->addUloginAccount(array(
             'user_id' => $user_id,
-            'identity' => strval($this->u_data['identity']),
+            'identity' => (string)$this->u_data['identity'],
             'network' => $this->u_data['network'],
         ));
 
         if (!$user) {
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "Не удалось записать данные об аккаунте.",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'Не удалось записать данные об аккаунте.',
                 'answerType' => 'error'
             ));
             return false;
@@ -334,7 +331,6 @@ class actionUloginLogin extends cmsAction {
 
         if (empty($CMSuser['id'])) { return false; }
 
-//		$this->getAvatar($CMSuser);
         // обновление данных
         if (
             empty($CMSuser['avatar'])
@@ -350,7 +346,7 @@ class actionUloginLogin extends cmsAction {
             $CMSuser['phone'] = empty( $CMSuser['phone'] ) && isset( $u_data['phone'] ) ? $u_data['phone'] : $CMSuser['phone'];
 
             if ((empty($CMSuser['birth_date']) || $CMSuser['birth_date'] == '0000-00-00 00:00:00') && isset($u_data['bdate'])) {
-                $CMSuser['birth_date'] = date( "Y-m-d H:i:s", strtotime( $u_data['bdate'] ) );
+                $CMSuser['birth_date'] = date( 'Y-m-d H:i:s', strtotime($u_data['bdate'] ) );
             }
 
             if (!empty($CMSuser['city_id'])) {
@@ -458,8 +454,8 @@ class actionUloginLogin extends cmsAction {
                     break;
             }
 
-            $dir_num_user   = sprintf('%03d', intval($user['id']/100));
-            $dir_num_file   = sprintf('%03d', intval($user['files_count']/100));
+            $dir_num_user   = sprintf('%03d', (int)($user['id']/100));
+            $dir_num_file   = sprintf('%03d', (int)($user['files_count']/100));
             $dest_dir0      = "{$dir_num_user}/u{$user['id']}/{$dir_num_file}";
             $dest_dir       = $config->upload_path . $dest_dir0;
 
@@ -471,12 +467,10 @@ class actionUloginLogin extends cmsAction {
             $q = @copy( $file_url, $path );
         }
 
-        if ($q){
-            if (!$uploader->isImage($path)){
-                $uploader->remove($path);
-                $msg = 'Файл имеет неподходящий формат';
-                $q = false ;
-            }
+        if ($q && !$uploader->isImage($path)){
+            $uploader->remove($path);
+            $msg = 'Файл имеет неподходящий формат';
+            $q = false ;
         }
 
         if (!$q) {
@@ -561,8 +555,8 @@ class actionUloginLogin extends cmsAction {
 
         if (!$token) {
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "Не был получен токен uLogin.",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'Не был получен токен uLogin.',
                 'answerType' => 'error'
             ));
             return false;
@@ -572,8 +566,8 @@ class actionUloginLogin extends cmsAction {
 
         if (!$s){
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "Не удалось получить данные о пользователе с помощью токена.",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'Не удалось получить данные о пользователе с помощью токена.',
                 'answerType' => 'error'
             ));
             return false;
@@ -625,8 +619,8 @@ class actionUloginLogin extends cmsAction {
     protected function checkTokenError(){
         if (!is_array($this->u_data)){
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "Данные о пользователе содержат неверный формат.",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'Данные о пользователе содержат неверный формат.',
                 'answerType' => 'error'
             ));
             return false;
@@ -636,8 +630,8 @@ class actionUloginLogin extends cmsAction {
             $strpos = strpos($this->u_data['error'],'host is not');
             if ($strpos){
                 $this->sendMessage (array(
-                    'title' => "Произошла ошибка при авторизации.",
-                    'msg' => "<i>ERROR</i>: адрес хоста не совпадает с оригиналом " . sub($this->u_data['error'],intval($strpos)+12),
+                    'title' => 'Произошла ошибка при авторизации.',
+                    'msg' => '<i>ERROR</i>: адрес хоста не совпадает с оригиналом ' . sub($this->u_data['error'], (int)$strpos +12),
                     'answerType' => 'error'
                 ));
                 return false;
@@ -645,22 +639,22 @@ class actionUloginLogin extends cmsAction {
             switch ($this->u_data['error']){
                 case 'token expired':
                     $this->sendMessage (array(
-                        'title' => "Произошла ошибка при авторизации.",
-                        'msg' => "<i>ERROR</i>: время жизни токена истекло",
+                        'title' => 'Произошла ошибка при авторизации.',
+                        'msg' => '<i>ERROR</i>: время жизни токена истекло',
                         'answerType' => 'error'
                     ));
                     break;
                 case 'invalid token':
                     $this->sendMessage (array(
-                        'title' => "Произошла ошибка при авторизации.",
-                        'msg' => "<i>ERROR</i>: неверный токен",
+                        'title' => 'Произошла ошибка при авторизации.',
+                        'msg' => '<i>ERROR</i>: неверный токен',
                         'answerType' => 'error'
                     ));
                     break;
                 default:
                     $this->sendMessage (array(
-                        'title' => "Произошла ошибка при авторизации.",
-                        'msg' => "<i>ERROR</i>: " . $this->u_data['error'],
+                        'title' => 'Произошла ошибка при авторизации.',
+                        'msg' => '<i>ERROR</i>: ' . $this->u_data['error'],
                         'answerType' => 'error'
                     ));
             }
@@ -668,16 +662,16 @@ class actionUloginLogin extends cmsAction {
         }
         if (!isset($this->u_data['identity'])){
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "В возвращаемых данных отсутствует переменная <b>identity</b>.",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'В возвращаемых данных отсутствует переменная <b>identity</b>.',
                 'answerType' => 'error'
             ));
             return false;
         }
         if (!isset($this->u_data['email'])){
             $this->sendMessage (array(
-                'title' => "Произошла ошибка при авторизации.",
-                'msg' => "В возвращаемых данных отсутствует переменная <b>email</b>",
+                'title' => 'Произошла ошибка при авторизации.',
+                'msg' => 'В возвращаемых данных отсутствует переменная <b>email</b>',
                 'answerType' => 'error'
             ));
             return false;
@@ -696,16 +690,17 @@ class actionUloginLogin extends cmsAction {
      * @param array $delimiters
      * @return string
      */
-    protected function generateNickname($first_name, $last_name="", $nickname="", $bdate="", $delimiters=array('.', '_')) {
-        return $first_name . " " . $last_name;
+    protected function generateNickname($first_name, $last_name = '', $nickname = '', $bdate = '', $delimiters=array('.', '_')) {
+        return $first_name . ' ' . $last_name;
         $delim = array_shift($delimiters);
 
         $first_name = $this->translitIt($first_name);
-        $first_name_s = substr($first_name, 0, 1);
+        $first_name_s = $first_name[0];
 
         $variants = array();
-        if (!empty($nickname))
+        if (!empty($nickname)) {
             $variants[] = $nickname;
+        }
         $variants[] = $first_name;
         if (!empty($last_name)) {
             $last_name = $this->translitIt($last_name);
@@ -756,13 +751,15 @@ class actionUloginLogin extends cmsAction {
                     $replaced = str_replace($delim, $del, $variants[$i]);
                     if($replaced !== $variants[$i]){
                         $variants[$i] = $replaced;
-                        if (!$exist = $this->userExist($variants[$i]))
+                        if (!$exist = $this->userExist($variants[$i])) {
                             break;
+                        }
                     }
                 }
             }
-            if ($i >= count($variants)-1 || !$exist)
+            if ($i >= count($variants)-1 || !$exist) {
                 break;
+            }
             $i++;
         }
 
@@ -772,8 +769,9 @@ class actionUloginLogin extends cmsAction {
                 $exist = $this->userExist($nickname);
             }
             return $nickname;
-        } else
-            return $variants[$i];
+        }
+
+        return $variants[$i];
     }
 
 
@@ -793,19 +791,19 @@ class actionUloginLogin extends cmsAction {
      */
     protected function translitIt($str) {
         $tr = array(
-            "А"=>"a","Б"=>"b","В"=>"v","Г"=>"g",
-            "Д"=>"d","Е"=>"e","Ж"=>"j","З"=>"z","И"=>"i",
-            "Й"=>"y","К"=>"k","Л"=>"l","М"=>"m","Н"=>"n",
-            "О"=>"o","П"=>"p","Р"=>"r","С"=>"s","Т"=>"t",
-            "У"=>"u","Ф"=>"f","Х"=>"h","Ц"=>"ts","Ч"=>"ch",
-            "Ш"=>"sh","Щ"=>"sch","Ъ"=>"","Ы"=>"yi","Ь"=>"",
-            "Э"=>"e","Ю"=>"yu","Я"=>"ya","а"=>"a","б"=>"b",
-            "в"=>"v","г"=>"g","д"=>"d","е"=>"e","ж"=>"j",
-            "з"=>"z","и"=>"i","й"=>"y","к"=>"k","л"=>"l",
-            "м"=>"m","н"=>"n","о"=>"o","п"=>"p","р"=>"r",
-            "с"=>"s","т"=>"t","у"=>"u","ф"=>"f","х"=>"h",
-            "ц"=>"ts","ч"=>"ch","ш"=>"sh","щ"=>"sch","ъ"=>"y",
-            "ы"=>"y","ь"=>"","э"=>"e","ю"=>"yu","я"=>"ya"
+            'А' => 'a', 'Б' => 'b', 'В' => 'v', 'Г' => 'g',
+            'Д' => 'd', 'Е' => 'e', 'Ж' => 'j', 'З' => 'z', 'И' => 'i',
+            'Й' => 'y', 'К' => 'k', 'Л' => 'l', 'М' => 'm', 'Н' => 'n',
+            'О' => 'o', 'П' => 'p', 'Р' => 'r', 'С' => 's', 'Т' => 't',
+            'У' => 'u', 'Ф' => 'f', 'Х' => 'h', 'Ц' => 'ts', 'Ч' => 'ch',
+            'Ш' => 'sh', 'Щ' => 'sch', 'Ъ' => '', 'Ы' => 'yi', 'Ь' => '',
+            'Э' => 'e', 'Ю' => 'yu', 'Я' => 'ya', 'а' => 'a', 'б' => 'b',
+            'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ж' => 'j',
+            'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l',
+            'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r',
+            'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h',
+            'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch', 'ъ' => 'y',
+            'ы' => 'y', 'ь' => '', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya'
         );
         if (preg_match('/[^A-Za-z0-9\_\-]/', $str)) {
             $str = strtr($str,$tr);
