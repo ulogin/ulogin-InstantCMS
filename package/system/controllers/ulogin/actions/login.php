@@ -2,13 +2,15 @@
 
 // todo: вынести в языки
 
-class actionUloginLogin extends cmsAction {
+class actionUloginLogin extends cmsAction
+{
     protected $u_data;
     protected $currentUserId;
     protected $_messParam = array();
     protected $_doRedirect = true;
 
-    public function run(){
+    public function run()
+    {
         $title = '';
 
         $this->currentUserId = cmsUser::getInstance()->id;
@@ -34,8 +36,9 @@ class actionUloginLogin extends cmsAction {
      * либо добавляет сообщение в сессию для вывода в режиме redirect
      * @param array $params
      */
-    protected function sendMessage ($params = array()) {
-        if ($this->_doRedirect){
+    protected function sendMessage($params = array())
+    {
+        if ($this->_doRedirect) {
 
             $class = ($params['answerType'] == 'error' || $params['answerType'] == 'success')
                 ? $params['answerType']
@@ -45,7 +48,7 @@ class actionUloginLogin extends cmsAction {
                 $params['msg'] .= $params['script'];
             }
 
-            cmsUser::addSessionMessage((!empty($params['title']) ? $params['title']  . ' <br>' : '') . $params['msg'], $class);
+            cmsUser::addSessionMessage((!empty($params['title']) ? $params['title'] . ' <br>' : '') . $params['msg'], $class);
 
             $this->redirectBack();
 
@@ -64,10 +67,10 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
-    protected function uloginLogin ($title = '', $msg = '') {
+    protected function uloginLogin($title = '', $msg = '')
+    {
         $this->u_data = $this->uloginParseRequest();
-        if ( !$this->u_data ) {
+        if (!$this->u_data) {
             return;
         }
 
@@ -75,20 +78,20 @@ class actionUloginLogin extends cmsAction {
             $u_user_db = $this->model->getUloginUserItem(array('identity' => $this->u_data['identity']));
             $user_id = 0;
 
-            if ( $u_user_db ) {
+            if ($u_user_db) {
 
                 if ($this->model->checkUloginUserId($u_user_db['user_id'])) {
                     $user_id = $u_user_db['user_id'];
                 }
 
-                if ( isset( $user_id ) && (int)$user_id > 0 ) {
-                    if ( !$this->checkCurrentUserId( $user_id ) ) {
+                if (isset($user_id) && (int)$user_id > 0) {
+                    if (!$this->checkCurrentUserId($user_id)) {
                         // если $user_id != ID текущего пользователя
                         return;
                     }
                 } else {
                     // данные о пользователе есть в ulogin_table, но отсутствуют в modx. Необходимо переписать запись в ulogin_table и в базе modx.
-                    $user_id = $this->newUloginAccount( $u_user_db );
+                    $user_id = $this->newUloginAccount($u_user_db);
                 }
 
             } else {
@@ -97,23 +100,21 @@ class actionUloginLogin extends cmsAction {
             }
 
             // обновление данных и Вход
-            if ( $user_id > 0 ) {
-                $this->loginUser( $user_id );
+            if ($user_id > 0) {
+                $this->loginUser($user_id);
 
-                $networks = $this->model->getUloginUserNetworks( $user_id );
-                $this->sendMessage( array(
+                $networks = $this->model->getUloginUserNetworks($user_id);
+                $this->sendMessage(array(
                     'title' => $title,
                     'msg' => $msg,
                     'networks' => $networks,
                     'answerType' => 'success',
-//					'redirect' => $redirect_url,
-                ) );
+                    //					'redirect' => $redirect_url,
+                ));
             }
             return;
-        }
-
-        catch (Exception $e){
-            $this->sendMessage (array(
+        } catch (Exception $e) {
+            $this->sendMessage(array(
                 'title' => 'Ошибка при работе с БД.',
                 'msg' => 'Exception: ' . $e->getMessage(),
                 'answerType' => 'error'
@@ -123,12 +124,12 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
     /**
      * Добавление в таблицу uLogin
      * @param $u_user_db - при непустом значении необходимо переписать данные в таблице uLogin
      */
-    protected function newUloginAccount($u_user_db = ''){
+    protected function newUloginAccount($u_user_db = '')
+    {
 
         $u_data = $this->u_data;
 
@@ -137,16 +138,16 @@ class actionUloginLogin extends cmsAction {
             $this->model->deleteUloginUser($u_user_db['id']);
         }
 
-        if(!(new auth($this->request))->isEmailAllowed($u_data['email'])){
-            $this->sendMessage (array(
+        if (!(new auth($this->request))->isEmailAllowed($u_data['email'])) {
+            $this->sendMessage(array(
                 'title' => 'Ошибка при регистрации.',
                 'msg' => sprintf(LANG_AUTH_RESTRICTED_EMAIL, $u_data['email']),
                 'answerType' => 'error'
             ));
             return false;
         }
-        if(!(new auth($this->request))->isIPAllowed(cmsUser::get('ip'))){
-            $this->sendMessage (array(
+        if (!(new auth($this->request))->isIPAllowed(cmsUser::get('ip'))) {
+            $this->sendMessage(array(
                 'title' => 'Ошибка при регистрации.',
                 'msg' => sprintf(LANG_AUTH_RESTRICTED_IP, cmsUser::get('ip')),
                 'answerType' => 'error'
@@ -176,7 +177,7 @@ class actionUloginLogin extends cmsAction {
             $this->addUloginAccount($user_id);
         } else {
             // существует пользователь с таким email или это текущий пользователь
-            if ((int)$u_data['verified_email'] != 1){
+            if ((int)$u_data['verified_email'] != 1) {
                 // Верификация аккаунта
 
                 $this->sendMessage(
@@ -223,10 +224,11 @@ class actionUloginLogin extends cmsAction {
      * Регистрация пользователя в БД
      * @return mixed
      */
-    protected function regUser(){
+    protected function regUser()
+    {
         $u_data = $this->u_data;
 
-        $password = md5($u_data['identity'].time().mt_rand());
+        $password = md5($u_data['identity'] . time() . mt_rand());
 
         $first_name = !empty($u_data['first_name']) ? $u_data['first_name'] : '';
         $last_name = !empty($u_data['last_name']) ? $u_data['last_name'] : '';
@@ -256,7 +258,7 @@ class actionUloginLogin extends cmsAction {
         }
 
         $city_id = isset($u_data['city'])
-            ? $this->model->getCityId($u_data['city'],$u_data['country'])
+            ? $this->model->getCityId($u_data['city'], $u_data['country'])
             : 0;
 
         if ($city_id > 0) {
@@ -268,7 +270,7 @@ class actionUloginLogin extends cmsAction {
         $result = $users_model->addUser($CMSuser);
 
         //  см. system/controllers/auth/actions/register.php:187
-        if ($result['success']){
+        if ($result['success']) {
 
             $CMSuser['id'] = $result['id'];
 
@@ -277,7 +279,7 @@ class actionUloginLogin extends cmsAction {
             cmsEventsManager::hook('user_registered', $CMSuser);
 
         } else {
-            $this->sendMessage (array(
+            $this->sendMessage(array(
                 'title' => 'Ошибка при регистрации.',
                 'msg' => 'Произошла ошибка при регистрации пользователя.',
                 'answerType' => 'error'
@@ -289,14 +291,13 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
-
     /**
      * Добавление записи в таблицу ulogin_user
      * @param $user_id
      * @return bool
      */
-    protected function addUloginAccount($user_id){
+    protected function addUloginAccount($user_id)
+    {
         $user = $this->model->addUloginAccount(array(
             'user_id' => $user_id,
             'identity' => (string)$this->u_data['identity'],
@@ -304,7 +305,7 @@ class actionUloginLogin extends cmsAction {
         ));
 
         if (!$user) {
-            $this->sendMessage (array(
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'Не удалось записать данные об аккаунте.',
                 'answerType' => 'error'
@@ -316,20 +317,21 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
-
     /**
      * Выполнение входа пользователя в систему по $user_id
      * @param $u_user
      * @param int $user_id
      */
-    protected function loginUser($user_id = 0){
+    protected function loginUser($user_id = 0)
+    {
 
         $u_data = $this->u_data;
 
         $CMSuser = $this->model->getUser(array('id' => $user_id));
 
-        if (empty($CMSuser['id'])) { return false; }
+        if (empty($CMSuser['id'])) {
+            return false;
+        }
 
         // обновление данных
         if (
@@ -339,25 +341,25 @@ class actionUloginLogin extends cmsAction {
             || empty($CMSuser['phone'])
             || empty($CMSuser['city'])
         ) {
-            $users = cmsCore::getModel( 'users' );
-            $CMSuser['avatar'] = empty( $CMSuser['avatar'] ) && isset( $u_data['photo_big'] ) ?  $this->getAvatar($CMSuser) : $CMSuser['avatar'];
+            $users = cmsCore::getModel('users');
+            $CMSuser['avatar'] = empty($CMSuser['avatar']) && isset($u_data['photo_big']) ? $this->getAvatar($CMSuser) : $CMSuser['avatar'];
 
-            $CMSuser['site'] = empty( $CMSuser['site'] ) && isset( $u_data['profile'] ) ? $u_data['profile'] : $CMSuser['site'];
-            $CMSuser['phone'] = empty( $CMSuser['phone'] ) && isset( $u_data['phone'] ) ? $u_data['phone'] : $CMSuser['phone'];
+            $CMSuser['site'] = empty($CMSuser['site']) && isset($u_data['profile']) ? $u_data['profile'] : $CMSuser['site'];
+            $CMSuser['phone'] = empty($CMSuser['phone']) && isset($u_data['phone']) ? $u_data['phone'] : $CMSuser['phone'];
 
             if ((empty($CMSuser['birth_date']) || $CMSuser['birth_date'] == '0000-00-00 00:00:00') && isset($u_data['bdate'])) {
-                $CMSuser['birth_date'] = date( 'Y-m-d H:i:s', strtotime($u_data['bdate'] ) );
+                $CMSuser['birth_date'] = date('Y-m-d H:i:s', strtotime($u_data['bdate']));
             }
 
             if (!empty($CMSuser['city_id'])) {
                 $CMSuser['city'] = $CMSuser['city_id'];
             } elseif (isset($u_data['city'])) {
-                $CMSuser['city'] = $this->model->getCityId($u_data['city'],$u_data['country']);
+                $CMSuser['city'] = $this->model->getCityId($u_data['city'], $u_data['country']);
             }
 
-            $result = $users->updateUser( $CMSuser['id'], $CMSuser );
+            $result = $users->updateUser($CMSuser['id'], $CMSuser);
 
-            if ( $result['errors'] ) {
+            if ($result['errors']) {
                 $this->sendMessage(
                     array(
                         'title' => '',
@@ -388,13 +390,13 @@ class actionUloginLogin extends cmsAction {
 
 
         // см. system/controllers/auth/actions/login.php:30
-        if (!cmsConfig::get('is_site_on')){
+        if (!cmsConfig::get('is_site_on')) {
 
             $userSession = cmsUser::sessionGet('user');
 
-            if (!$userSession['is_admin']){
+            if (!$userSession['is_admin']) {
                 cmsUser::logout();
-                $this->sendMessage (
+                $this->sendMessage(
                     array(
                         'title' => '',
                         'msg' => 'Войти на отключенный сайт может только администратор',//LANG_LOGIN_ADMIN_ONLY,
@@ -412,11 +414,11 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
     /**
      * Создание аватара
      */
-    protected function getAvatar($user) {
+    protected function getAvatar($user)
+    {
 
         // см. system/core/uploader.php
         // см. system/controllers/images/frontend.php:38
@@ -430,16 +432,16 @@ class actionUloginLogin extends cmsAction {
         $dest_dir0 = '';
         $dest_ext = '';
 
-        $file_url = ( !empty( $u_data['photo_big'] ) )
+        $file_url = (!empty($u_data['photo_big']))
             ? $u_data['photo_big']
-            : ( !empty( $u_data['photo'] )  ? $u_data['photo'] : '' );
+            : (!empty($u_data['photo']) ? $u_data['photo'] : '');
 
-        $q = !empty( $file_url ) ? true : false;
+        $q = !empty($file_url) ? true : false;
 
         if ($q) {
 
-            $size = getimagesize( $file_url );
-            switch ( $size[2] ) {
+            $size = getimagesize($file_url);
+            switch ($size[2]) {
                 case IMAGETYPE_GIF:
                     $dest_ext = 'gif';
                     break;
@@ -454,23 +456,23 @@ class actionUloginLogin extends cmsAction {
                     break;
             }
 
-            $dir_num_user   = sprintf('%03d', (int)($user['id']/100));
-            $dir_num_file   = sprintf('%03d', (int)($user['files_count']/100));
-            $dest_dir0      = "{$dir_num_user}/u{$user['id']}/{$dir_num_file}";
-            $dest_dir       = $config->upload_path . $dest_dir0;
+            $dir_num_user = sprintf('%03d', (int)($user['id'] / 100));
+            $dir_num_file = sprintf('%03d', (int)($user['files_count'] / 100));
+            $dest_dir0 = "{$dir_num_user}/u{$user['id']}/{$dir_num_file}";
+            $dest_dir = $config->upload_path . $dest_dir0;
 
             @mkdir($dest_dir, 0777, true);
 
-            $dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
+            $dest_file = substr(md5($user['id'] . $user['files_count'] . microtime(true)), 0, 8) . '.' . $dest_ext;
             $path = $dest_dir . '/' . $dest_file;
 
-            $q = @copy( $file_url, $path );
+            $q = @copy($file_url, $path);
         }
 
-        if ($q && !$uploader->isImage($path)){
+        if ($q && !$uploader->isImage($path)) {
             $uploader->remove($path);
             $msg = 'Файл имеет неподходящий формат';
-            $q = false ;
+            $q = false;
         }
 
         if (!$q) {
@@ -481,19 +483,19 @@ class actionUloginLogin extends cmsAction {
         }
 
         $defaultPresets = array(
-            'normal' 	=> array('width' => 256, 'height' => 256),
-            'small' 	=> array('width' => 64, 'height' => 64),
-            'micro' 	=> array('width' => 32, 'height' => 32),
+            'normal' => array('width' => 256, 'height' => 256),
+            'small' => array('width' => 64, 'height' => 64),
+            'micro' => array('width' => 32, 'height' => 32),
         );
         $availablePresets = array_keys($defaultPresets);
 
         //достаем размеры изображений из настроек "загрузка изображений" (если он установлен) и индексируем их по именам
-        if(cmsCore::isModelExists('images')){
+        if (cmsCore::isModelExists('images')) {
             $images_model = cmsCore::getModel('images');
             $presets_tmp = $images_model->getPresets();
             $presets = array();
             foreach ($presets_tmp as $tmp) {
-                if(in_array($tmp['name'], $availablePresets)) {
+                if (in_array($tmp['name'], $availablePresets)) {
                     $presets[$tmp['name']] = $tmp;
                 }
             }
@@ -507,7 +509,7 @@ class actionUloginLogin extends cmsAction {
 
         $result['paths'] = array();
         foreach ($presets as $name => $data) {
-            $dest_file = substr( md5( $user['id'] . $user['files_count'] . microtime( true ) ), 0, 8 ) . '.' . $dest_ext;
+            $dest_file = substr(md5($user['id'] . $user['files_count'] . microtime(true)), 0, 8) . '.' . $dest_ext;
             $path2 = $dest_dir . '/' . $dest_file;
             if ($uploader->imageCopyResized($path, $path2, $data['width'], $data['height'], false)) {
                 $result['paths'][$name] = $dest_dir0 . '/' . $dest_file;
@@ -526,13 +528,14 @@ class actionUloginLogin extends cmsAction {
      * @param $user_id
      * @return bool
      */
-    protected function checkCurrentUserId($user_id){
+    protected function checkCurrentUserId($user_id)
+    {
         $currentUserId = $this->currentUserId;
-        if(cmsUser::isLogged()) {
+        if (cmsUser::isLogged()) {
             if ($currentUserId == $user_id) {
                 return true;
             }
-            $this->sendMessage (
+            $this->sendMessage(
                 array(
                     'title' => '',
                     'msg' => 'Данный аккаунт привязан к другому пользователю. ' .
@@ -546,15 +549,15 @@ class actionUloginLogin extends cmsAction {
     }
 
 
-
     /**
      * Обработка ответа сервера авторизации
      */
-    protected function uloginParseRequest(){
+    protected function uloginParseRequest()
+    {
         $token = $this->request->get('token');
 
         if (!$token) {
-            $this->sendMessage (array(
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'Не был получен токен uLogin.',
                 'answerType' => 'error'
@@ -564,8 +567,8 @@ class actionUloginLogin extends cmsAction {
 
         $s = $this->getUserFromToken($token);
 
-        if (!$s){
-            $this->sendMessage (array(
+        if (!$s) {
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'Не удалось получить данные о пользователе с помощью токена.',
                 'answerType' => 'error'
@@ -575,7 +578,7 @@ class actionUloginLogin extends cmsAction {
 
         $this->u_data = json_decode($s, true);
 
-        if (!$this->checkTokenError()){
+        if (!$this->checkTokenError()) {
             return false;
         }
 
@@ -589,7 +592,7 @@ class actionUloginLogin extends cmsAction {
     protected function getUserFromToken($token = false)
     {
         $response = false;
-        if ($token){
+        if ($token) {
 
             $data = array(
                 'cms' => 'instantcms',
@@ -597,15 +600,15 @@ class actionUloginLogin extends cmsAction {
             );
 
             $request = 'https://ulogin.ru/token.php?token=' . $token . '&host=' . $_SERVER['HTTP_HOST'] .
-                '&data='.base64_encode(json_encode($data));
+                '&data=' . base64_encode(json_encode($data));
 
-            if(in_array('curl', get_loaded_extensions())){
+            if (in_array('curl', get_loaded_extensions())) {
                 $c = curl_init($request);
                 curl_setopt($c, CURLOPT_RETURNTRANSFER, 1);
                 $response = curl_exec($c);
                 curl_close($c);
 
-            } elseif (function_exists('file_get_contents') && ini_get('allow_url_fopen')){
+            } elseif (function_exists('file_get_contents') && ini_get('allow_url_fopen')) {
                 $response = file_get_contents($request);
             }
         }
@@ -616,9 +619,10 @@ class actionUloginLogin extends cmsAction {
     /**
      * Проверка пользовательских данных, полученных по токену
      */
-    protected function checkTokenError(){
-        if (!is_array($this->u_data)){
-            $this->sendMessage (array(
+    protected function checkTokenError()
+    {
+        if (!is_array($this->u_data)) {
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'Данные о пользователе содержат неверный формат.',
                 'answerType' => 'error'
@@ -626,33 +630,33 @@ class actionUloginLogin extends cmsAction {
             return false;
         }
 
-        if (isset($this->u_data['error'])){
-            $strpos = strpos($this->u_data['error'],'host is not');
-            if ($strpos){
-                $this->sendMessage (array(
+        if (isset($this->u_data['error'])) {
+            $strpos = strpos($this->u_data['error'], 'host is not');
+            if ($strpos) {
+                $this->sendMessage(array(
                     'title' => 'Произошла ошибка при авторизации.',
-                    'msg' => '<i>ERROR</i>: адрес хоста не совпадает с оригиналом ' . sub($this->u_data['error'], (int)$strpos +12),
+                    'msg' => '<i>ERROR</i>: адрес хоста не совпадает с оригиналом ' . sub($this->u_data['error'], (int)$strpos + 12),
                     'answerType' => 'error'
                 ));
                 return false;
             }
-            switch ($this->u_data['error']){
+            switch ($this->u_data['error']) {
                 case 'token expired':
-                    $this->sendMessage (array(
+                    $this->sendMessage(array(
                         'title' => 'Произошла ошибка при авторизации.',
                         'msg' => '<i>ERROR</i>: время жизни токена истекло',
                         'answerType' => 'error'
                     ));
                     break;
                 case 'invalid token':
-                    $this->sendMessage (array(
+                    $this->sendMessage(array(
                         'title' => 'Произошла ошибка при авторизации.',
                         'msg' => '<i>ERROR</i>: неверный токен',
                         'answerType' => 'error'
                     ));
                     break;
                 default:
-                    $this->sendMessage (array(
+                    $this->sendMessage(array(
                         'title' => 'Произошла ошибка при авторизации.',
                         'msg' => '<i>ERROR</i>: ' . $this->u_data['error'],
                         'answerType' => 'error'
@@ -660,16 +664,16 @@ class actionUloginLogin extends cmsAction {
             }
             return false;
         }
-        if (!isset($this->u_data['identity'])){
-            $this->sendMessage (array(
+        if (!isset($this->u_data['identity'])) {
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'В возвращаемых данных отсутствует переменная <b>identity</b>.',
                 'answerType' => 'error'
             ));
             return false;
         }
-        if (!isset($this->u_data['email'])){
-            $this->sendMessage (array(
+        if (!isset($this->u_data['email'])) {
+            $this->sendMessage(array(
                 'title' => 'Произошла ошибка при авторизации.',
                 'msg' => 'В возвращаемых данных отсутствует переменная <b>email</b>',
                 'answerType' => 'error'
@@ -690,7 +694,11 @@ class actionUloginLogin extends cmsAction {
      * @param array $delimiters
      * @return string
      */
-    protected function generateNickname($first_name, $last_name = '', $nickname = '', $bdate = '', $delimiters=array('.', '_')) {
+    protected function generateNickname($first_name, $last_name = '', $nickname = '', $bdate = '', $delimiters = array(
+        '.',
+        '_'
+    ))
+    {
         return $first_name . ' ' . $last_name;
         $delim = array_shift($delimiters);
 
@@ -704,52 +712,52 @@ class actionUloginLogin extends cmsAction {
         $variants[] = $first_name;
         if (!empty($last_name)) {
             $last_name = $this->translitIt($last_name);
-            $variants[] = $first_name.$delim.$last_name;
-            $variants[] = $last_name.$delim.$first_name;
-            $variants[] = $first_name_s.$delim.$last_name;
-            $variants[] = $first_name_s.$last_name;
-            $variants[] = $last_name.$delim.$first_name_s;
-            $variants[] = $last_name.$first_name_s;
+            $variants[] = $first_name . $delim . $last_name;
+            $variants[] = $last_name . $delim . $first_name;
+            $variants[] = $first_name_s . $delim . $last_name;
+            $variants[] = $first_name_s . $last_name;
+            $variants[] = $last_name . $delim . $first_name_s;
+            $variants[] = $last_name . $first_name_s;
         }
         if (!empty($bdate)) {
             $date = explode('.', $bdate);
-            $variants[] = $first_name.$date[2];
-            $variants[] = $first_name.$delim.$date[2];
-            $variants[] = $first_name.$date[0].$date[1];
-            $variants[] = $first_name.$delim.$date[0].$date[1];
-            $variants[] = $first_name.$delim.$last_name.$date[2];
-            $variants[] = $first_name.$delim.$last_name.$delim.$date[2];
-            $variants[] = $first_name.$delim.$last_name.$date[0].$date[1];
-            $variants[] = $first_name.$delim.$last_name.$delim.$date[0].$date[1];
-            $variants[] = $last_name.$delim.$first_name.$date[2];
-            $variants[] = $last_name.$delim.$first_name.$delim.$date[2];
-            $variants[] = $last_name.$delim.$first_name.$date[0].$date[1];
-            $variants[] = $last_name.$delim.$first_name.$delim.$date[0].$date[1];
-            $variants[] = $first_name_s.$delim.$last_name.$date[2];
-            $variants[] = $first_name_s.$delim.$last_name.$delim.$date[2];
-            $variants[] = $first_name_s.$delim.$last_name.$date[0].$date[1];
-            $variants[] = $first_name_s.$delim.$last_name.$delim.$date[0].$date[1];
-            $variants[] = $last_name.$delim.$first_name_s.$date[2];
-            $variants[] = $last_name.$delim.$first_name_s.$delim.$date[2];
-            $variants[] = $last_name.$delim.$first_name_s.$date[0].$date[1];
-            $variants[] = $last_name.$delim.$first_name_s.$delim.$date[0].$date[1];
-            $variants[] = $first_name_s.$last_name.$date[2];
-            $variants[] = $first_name_s.$last_name.$delim.$date[2];
-            $variants[] = $first_name_s.$last_name.$date[0].$date[1];
-            $variants[] = $first_name_s.$last_name.$delim.$date[0].$date[1];
-            $variants[] = $last_name.$first_name_s.$date[2];
-            $variants[] = $last_name.$first_name_s.$delim.$date[2];
-            $variants[] = $last_name.$first_name_s.$date[0].$date[1];
-            $variants[] = $last_name.$first_name_s.$delim.$date[0].$date[1];
+            $variants[] = $first_name . $date[2];
+            $variants[] = $first_name . $delim . $date[2];
+            $variants[] = $first_name . $date[0] . $date[1];
+            $variants[] = $first_name . $delim . $date[0] . $date[1];
+            $variants[] = $first_name . $delim . $last_name . $date[2];
+            $variants[] = $first_name . $delim . $last_name . $delim . $date[2];
+            $variants[] = $first_name . $delim . $last_name . $date[0] . $date[1];
+            $variants[] = $first_name . $delim . $last_name . $delim . $date[0] . $date[1];
+            $variants[] = $last_name . $delim . $first_name . $date[2];
+            $variants[] = $last_name . $delim . $first_name . $delim . $date[2];
+            $variants[] = $last_name . $delim . $first_name . $date[0] . $date[1];
+            $variants[] = $last_name . $delim . $first_name . $delim . $date[0] . $date[1];
+            $variants[] = $first_name_s . $delim . $last_name . $date[2];
+            $variants[] = $first_name_s . $delim . $last_name . $delim . $date[2];
+            $variants[] = $first_name_s . $delim . $last_name . $date[0] . $date[1];
+            $variants[] = $first_name_s . $delim . $last_name . $delim . $date[0] . $date[1];
+            $variants[] = $last_name . $delim . $first_name_s . $date[2];
+            $variants[] = $last_name . $delim . $first_name_s . $delim . $date[2];
+            $variants[] = $last_name . $delim . $first_name_s . $date[0] . $date[1];
+            $variants[] = $last_name . $delim . $first_name_s . $delim . $date[0] . $date[1];
+            $variants[] = $first_name_s . $last_name . $date[2];
+            $variants[] = $first_name_s . $last_name . $delim . $date[2];
+            $variants[] = $first_name_s . $last_name . $date[0] . $date[1];
+            $variants[] = $first_name_s . $last_name . $delim . $date[0] . $date[1];
+            $variants[] = $last_name . $first_name_s . $date[2];
+            $variants[] = $last_name . $first_name_s . $delim . $date[2];
+            $variants[] = $last_name . $first_name_s . $date[0] . $date[1];
+            $variants[] = $last_name . $first_name_s . $delim . $date[0] . $date[1];
         }
-        $i=0;
+        $i = 0;
 
         $exist = true;
         while (true) {
             if ($exist = $this->userExist($variants[$i])) {
                 foreach ($delimiters as $del) {
                     $replaced = str_replace($delim, $del, $variants[$i]);
-                    if($replaced !== $variants[$i]){
+                    if ($replaced !== $variants[$i]) {
                         $variants[$i] = $replaced;
                         if (!$exist = $this->userExist($variants[$i])) {
                             break;
@@ -757,7 +765,7 @@ class actionUloginLogin extends cmsAction {
                     }
                 }
             }
-            if ($i >= count($variants)-1 || !$exist) {
+            if ($i >= count($variants) - 1 || !$exist) {
                 break;
             }
             $i++;
@@ -765,7 +773,7 @@ class actionUloginLogin extends cmsAction {
 
         if ($exist) {
             while ($exist) {
-                $nickname = $first_name.mt_rand(1, 100000);
+                $nickname = $first_name . mt_rand(1, 100000);
                 $exist = $this->userExist($nickname);
             }
             return $nickname;
@@ -778,8 +786,9 @@ class actionUloginLogin extends cmsAction {
     /**
      * Проверка существует ли пользователь с заданным логином
      */
-    protected function userExist($login){
-        if (!$this->model->getUser(array('nickname'=>$login))){
+    protected function userExist($login)
+    {
+        if (!$this->model->getUser(array('nickname' => $login))) {
             return false;
         }
         return true;
@@ -789,24 +798,76 @@ class actionUloginLogin extends cmsAction {
     /**
      * Транслит
      */
-    protected function translitIt($str) {
+    protected function translitIt($str)
+    {
         $tr = array(
-            'А' => 'a', 'Б' => 'b', 'В' => 'v', 'Г' => 'g',
-            'Д' => 'd', 'Е' => 'e', 'Ж' => 'j', 'З' => 'z', 'И' => 'i',
-            'Й' => 'y', 'К' => 'k', 'Л' => 'l', 'М' => 'm', 'Н' => 'n',
-            'О' => 'o', 'П' => 'p', 'Р' => 'r', 'С' => 's', 'Т' => 't',
-            'У' => 'u', 'Ф' => 'f', 'Х' => 'h', 'Ц' => 'ts', 'Ч' => 'ch',
-            'Ш' => 'sh', 'Щ' => 'sch', 'Ъ' => '', 'Ы' => 'yi', 'Ь' => '',
-            'Э' => 'e', 'Ю' => 'yu', 'Я' => 'ya', 'а' => 'a', 'б' => 'b',
-            'в' => 'v', 'г' => 'g', 'д' => 'd', 'е' => 'e', 'ж' => 'j',
-            'з' => 'z', 'и' => 'i', 'й' => 'y', 'к' => 'k', 'л' => 'l',
-            'м' => 'm', 'н' => 'n', 'о' => 'o', 'п' => 'p', 'р' => 'r',
-            'с' => 's', 'т' => 't', 'у' => 'u', 'ф' => 'f', 'х' => 'h',
-            'ц' => 'ts', 'ч' => 'ch', 'ш' => 'sh', 'щ' => 'sch', 'ъ' => 'y',
-            'ы' => 'y', 'ь' => '', 'э' => 'e', 'ю' => 'yu', 'я' => 'ya'
+            'А' => 'a',
+            'Б' => 'b',
+            'В' => 'v',
+            'Г' => 'g',
+            'Д' => 'd',
+            'Е' => 'e',
+            'Ж' => 'j',
+            'З' => 'z',
+            'И' => 'i',
+            'Й' => 'y',
+            'К' => 'k',
+            'Л' => 'l',
+            'М' => 'm',
+            'Н' => 'n',
+            'О' => 'o',
+            'П' => 'p',
+            'Р' => 'r',
+            'С' => 's',
+            'Т' => 't',
+            'У' => 'u',
+            'Ф' => 'f',
+            'Х' => 'h',
+            'Ц' => 'ts',
+            'Ч' => 'ch',
+            'Ш' => 'sh',
+            'Щ' => 'sch',
+            'Ъ' => '',
+            'Ы' => 'yi',
+            'Ь' => '',
+            'Э' => 'e',
+            'Ю' => 'yu',
+            'Я' => 'ya',
+            'а' => 'a',
+            'б' => 'b',
+            'в' => 'v',
+            'г' => 'g',
+            'д' => 'd',
+            'е' => 'e',
+            'ж' => 'j',
+            'з' => 'z',
+            'и' => 'i',
+            'й' => 'y',
+            'к' => 'k',
+            'л' => 'l',
+            'м' => 'm',
+            'н' => 'n',
+            'о' => 'o',
+            'п' => 'p',
+            'р' => 'r',
+            'с' => 's',
+            'т' => 't',
+            'у' => 'u',
+            'ф' => 'f',
+            'х' => 'h',
+            'ц' => 'ts',
+            'ч' => 'ch',
+            'ш' => 'sh',
+            'щ' => 'sch',
+            'ъ' => 'y',
+            'ы' => 'y',
+            'ь' => '',
+            'э' => 'e',
+            'ю' => 'yu',
+            'я' => 'ya'
         );
         if (preg_match('/[^A-Za-z0-9\_\-]/', $str)) {
-            $str = strtr($str,$tr);
+            $str = strtr($str, $tr);
             $str = preg_replace('/[^A-Za-z0-9\_\-\.]/', '', $str);
         }
         return $str;
