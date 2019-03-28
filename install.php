@@ -11,13 +11,13 @@ function install_package () {
 		$db->insert(
 			'controllers',
 			array(
-				"title" => 'uLogin - регистрация/авторизация через соцсети',
+				'title' => 'uLogin - регистрация/авторизация через соцсети',
 				'name' => 'ulogin',
 				'is_enabled' => 1,
 				'options' => '',
 				'author' => 'uLogin Team',
 				'url' => 'https://ulogin.ru',
-				'version' => '2.0.5',
+				'version' => '2.0.13',
 				'is_backend' => 1,
 			)
 		);
@@ -26,7 +26,7 @@ function install_package () {
 			'controllers',
 			$controllers,
 			array(
-				'version' => '2.0.5',
+				'version' => '2.0.13',
 			)
 		);
 	}
@@ -44,7 +44,7 @@ function install_package () {
 				'title' => 'Войти с помощью',
 				'author' => 'uLogin Team',
 				'url' => 'https://ulogin.ru',
-				'version' => '1.0',
+				'version' => '2.0.13',
 			)
 		);
 
@@ -56,7 +56,7 @@ function install_package () {
 				'title' => 'Мои аккаунты',
 				'author' => 'uLogin Team',
 				'url' => 'https://ulogin.ru',
-				'version' => '1.0',
+				'version' => '2.0.13',
 			)
 		);
 	}

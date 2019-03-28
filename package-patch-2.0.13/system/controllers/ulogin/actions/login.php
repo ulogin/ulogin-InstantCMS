@@ -177,7 +177,7 @@ class actionUloginLogin extends cmsAction
             $this->addUloginAccount($user_id);
         } else {
             // существует пользователь с таким email или это текущий пользователь
-            if ((int)$u_data['verified_email'] != 1) {
+            if ((int)$u_data['verified_email'] !== 1) {
                 // Верификация аккаунта
 
                 $this->sendMessage(
